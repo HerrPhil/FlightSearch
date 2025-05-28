@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ fun HomeScreen(
     Log.i("FilteredSearch", "In HomeScreen")
     val temporarySearchValueUiState = remember { mutableStateOf("") }
 //    val temporarySearchValueUiState = remember { mutableStateOf("air") }
+    val showFlights = remember { mutableStateOf(false) }
 
     Column(
         modifier.padding(top = contentPadding.calculateTopPadding())
@@ -47,8 +49,17 @@ fun HomeScreen(
                 Log.i("FilteredSearch", "The current search value to remember: $it")
                 temporarySearchValueUiState.value = it
             },
-            options
+            {
+                Log.i("FilteredSearch", "The app will display a list of flights.")
+                showFlights.value = true
+            },
+            options,
+            modifier.padding(16.dp)
         )
+
+        if (showFlights.value) {
+            Text( text = "TODO show the flights from ${temporarySearchValueUiState.value}")
+        }
 
     }
 

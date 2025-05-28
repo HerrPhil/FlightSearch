@@ -3,6 +3,7 @@
 package com.example.flightsearch.ui
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -51,9 +52,13 @@ fun FlightSearchApp() {
 fun FlightSearchTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifier) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
         title = {
             Text(
                 text = stringResource(R.string.app_name),
+                color = MaterialTheme.colorScheme.surface,
                 style = MaterialTheme.typography.headlineMedium
             )
         },
