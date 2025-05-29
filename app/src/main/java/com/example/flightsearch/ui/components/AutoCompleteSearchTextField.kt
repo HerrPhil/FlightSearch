@@ -2,8 +2,6 @@ package com.example.flightsearch.ui.components
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,23 +42,8 @@ fun AutoCompleteSearchTextField(
 
     Log.i("FilteredSearch", "In AutoCompleteSearchTextField")
 
-    // TODO implement the search results text field drop down filtering
-//    Box {
-//        Text(text = "TODO - add the rest of the auto-complete search text field, with dropdown, here")
-//    }
-
-    // TODO compose the complex widget using ExposedDropdownMenuBox, TextField,
-    //      ExposedDropdownMenu, and DropDownMenuItem
-
     var expanded by remember { mutableStateOf(false) }
-    var filteredOptions by remember(value) {
-        mutableStateOf(options.filter { option ->
-            option.contains(
-                value,
-                ignoreCase = true
-            )
-        })
-    }
+
     var textFieldValueState by remember {
         mutableStateOf(
             TextFieldValue(
@@ -71,7 +54,12 @@ fun AutoCompleteSearchTextField(
     }
 
     Log.i("FilteredSearch", "number of options: ${options.size}")
-    Log.i("FilteredSearch", "number of filtered options: ${filteredOptions.size}")
+    Log.i("FilteredSearch", "test for trailing icon and drop down menu")
+    Log.i("FilteredSearch", "exposed drop down menu expanded: $expanded")
+    Log.i(
+        "FilteredSearch",
+        "exposed drop down menu expanded text field value is not blank: ${value.isNotBlank()}"
+    )
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -80,16 +68,11 @@ fun AutoCompleteSearchTextField(
     ) {
         TextField(
             value = textFieldValueState,
-            onValueChange = { newValue ->
+            onValueChange = { filterValue ->
                 Log.i("FilteredSearch", "TextField onValueChange")
-                textFieldValueState = newValue.copy(selection = TextRange(newValue.text.length))
-                onValueChange(newValue.text)
-                filteredOptions = options.filter {
-                    it.contains(
-                        newValue.text,
-                        ignoreCase = true
-                    )
-                }
+                textFieldValueState =
+                    filterValue.copy(selection = TextRange(filterValue.text.length))
+                onValueChange(filterValue.text)
             },
             label = {
                 Text(text = stringResource(R.string.enter_departure_airport))
@@ -102,7 +85,7 @@ fun AutoCompleteSearchTextField(
             },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded && textFieldValueState.text.isNotBlank()
+                    expanded = expanded
                 )
             },
             colors = ExposedDropdownMenuDefaults.textFieldColors().copy(
@@ -117,10 +100,10 @@ fun AutoCompleteSearchTextField(
                 .menuAnchor(type = MenuAnchorType.SecondaryEditable, enabled = true)
         )
         ExposedDropdownMenu(
-            expanded = expanded && textFieldValueState.text.isNotBlank(),
+            expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            filteredOptions.forEach { selectionOption ->
+            options.forEach { selectionOption ->
                 DropdownMenuItem(
                     text = {
                         Text(text = selectionOption)
@@ -128,11 +111,12 @@ fun AutoCompleteSearchTextField(
                     onClick = {
                         Log.i("FilteredSearch", "MenuItem onClick")
                         onValueChange(selectionOption)
+                        expanded = false
                         textFieldValueState = TextFieldValue(
                             text = selectionOption,
                             selection = TextRange(selectionOption.length)
                         )
-                        expanded = false
+
                         // There is no need to pass the selection option.
                         // The view model will have this value.
                         // The onGetFlights lambda expression delegates to a view model function.

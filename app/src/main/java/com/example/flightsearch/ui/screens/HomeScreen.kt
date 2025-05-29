@@ -6,24 +6,28 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.ui.components.AutoCompleteSearchTextField
+import com.example.flightsearch.ui.components.FlightResults
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 
 @Composable
 fun HomeScreen(
+    searchValue: String,
+    showFlights: Boolean,
+    showFavorites: Boolean,
+    searchOptions: List<String>,
+    flights: List<String>,
+    onSearchValueChange: (String) -> Unit,
+    onGetFlights: () -> Unit,
+    onToggleFavorites: (String) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
 
     Log.i("FilteredSearch", "In HomeScreen")
-    val temporarySearchValueUiState = remember { mutableStateOf("") }
-//    val temporarySearchValueUiState = remember { mutableStateOf("air") }
-    val showFlights = remember { mutableStateOf(false) }
 
     Column(
         modifier.padding(top = contentPadding.calculateTopPadding())
@@ -34,31 +38,25 @@ fun HomeScreen(
 
         // TODO get list of options from ui state
         // TODO pass ui state to home screen
-        val searchValue = temporarySearchValueUiState.value
-        val options = listOf(
-            "YYC calgary international airport",
-            "YEG edmonton international airport",
-            "YVR vancouver international airport",
-            "YYZ toronto international airport",
-            "YWG winnipeg international airport"
-        )
+
         Log.i("FilteredSearch", "Call AutoCompleteSearchTextField")
         AutoCompleteSearchTextField(
             searchValue,
-            {
-                Log.i("FilteredSearch", "The current search value to remember: $it")
-                temporarySearchValueUiState.value = it
-            },
-            {
-                Log.i("FilteredSearch", "The app will display a list of flights.")
-                showFlights.value = true
-            },
-            options,
+            onSearchValueChange,
+            onGetFlights,
+            searchOptions,
             modifier.padding(16.dp)
         )
 
-        if (showFlights.value) {
-            Text( text = "TODO show the flights from ${temporarySearchValueUiState.value}")
+        if (showFlights) {
+//            Text(text = "TODO show the flights from ${searchValue}")
+            FlightResults(searchValue, flights, onToggleFavorites, contentPadding = contentPadding)
+        }
+
+        if (showFavorites) {
+            Log.i("FilteredSearch", "TODO show the favorites")
+        } else {
+            Log.i("FilteredSearch", "TODO hide the favorites")
         }
 
     }
@@ -69,6 +67,15 @@ fun HomeScreen(
 @Composable
 fun HomeScreenPreview() {
     FlightSearchTheme {
-        HomeScreen()
+        HomeScreen(
+            searchValue = "YYC",
+            showFlights = true,
+            showFavorites = false,
+            searchOptions = listOf("yyc calgary", "yeg edmonton", "ywg winnipeg"),
+            flights = listOf("flight 1", "flight 2", "flight 3", "flight 4"),
+            onSearchValueChange = {},
+            onGetFlights = {},
+            onToggleFavorites = {}
+        )
     }
 }
