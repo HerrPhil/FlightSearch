@@ -23,11 +23,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
+import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,8 +40,8 @@ import com.example.flightsearch.ui.theme.FlightSearchTheme
 fun AutoCompleteSearchTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    onGetFlights: () -> Unit,
-    options: List<String>,
+    onSetDepartureSelection: (AirportDetails) -> Unit,
+    options: List<AirportDetails>,
     modifier: Modifier = Modifier
 ) {
 
@@ -93,6 +98,7 @@ fun AutoCompleteSearchTextField(
                 unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer
             ),
             shape = RoundedCornerShape(percent = 10),
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(32.dp))
@@ -104,23 +110,30 @@ fun AutoCompleteSearchTextField(
             onDismissRequest = { expanded = false }
         ) {
             options.forEach { selectionOption ->
+
+                val annotatedAirportDetails = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(selectionOption.iataCode)
+                    }
+                    append("  ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
+                        append(selectionOption.name)
+
+                    }
+                }
+
                 DropdownMenuItem(
                     text = {
-                        Text(text = selectionOption)
+                        Text(text = annotatedAirportDetails)
                     },
                     onClick = {
                         Log.i("FilteredSearch", "MenuItem onClick")
-                        onValueChange(selectionOption)
                         expanded = false
                         textFieldValueState = TextFieldValue(
-                            text = selectionOption,
-                            selection = TextRange(selectionOption.length)
+                            text = annotatedAirportDetails.text,
+                            selection = TextRange(annotatedAirportDetails.length)
                         )
-
-                        // There is no need to pass the selection option.
-                        // The view model will have this value.
-                        // The onGetFlights lambda expression delegates to a view model function.
-                        onGetFlights()
+                        onSetDepartureSelection(selectionOption)
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
@@ -136,6 +149,28 @@ fun AutoCompleteSearchTextField(
 @Composable
 fun AutoCompleteSearchTextFieldPreview() {
     FlightSearchTheme {
-        AutoCompleteSearchTextField("test", { }, {}, listOf("abc", "def", "ghi"))
+
+        val previewSearchOptions = listOf(
+            AirportDetails(
+                id = 1,
+                iataCode = "YYC",
+                name = "Calgary International Airport",
+                passengers = 100
+            ),
+            AirportDetails(
+                id = 2,
+                iataCode = "YEG",
+                name = "Edmonton International Airport",
+                passengers = 200
+            ),
+            AirportDetails(
+                id = 1,
+                iataCode = "YWG",
+                name = "Winnipeg International Airport",
+                passengers = 300
+            ),
+        )
+
+        AutoCompleteSearchTextField("test", { }, {}, previewSearchOptions)
     }
 }

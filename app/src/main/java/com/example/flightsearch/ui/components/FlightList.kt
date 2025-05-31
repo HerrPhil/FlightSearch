@@ -23,7 +23,7 @@ import com.example.flightsearch.ui.theme.FlightSearchTheme
 // TODO re-factor flights to be the FlightDetail domain object
 @Composable
 fun FlightResults(
-    airport: String,
+    resultsLabel: String,
     flights: List<String>,
     onClick: (String) -> Unit, // This will be the item click to add/remove flight to/from favorites
     modifier: Modifier = Modifier,
@@ -35,7 +35,7 @@ fun FlightResults(
     ) {
         // TODO replace with airport code from domain object airport details
         Text(
-            text = "Flights from $airport",
+            text = resultsLabel,
             modifier = modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
         )
         FlightList(
@@ -63,8 +63,8 @@ private fun FlightList(
     // between its top the the Text composable above it. In this case, simply customize the
     // content padding with PaddingValues that make sense for this UX design.
     LazyColumn(
-//        contentPadding = contentPadding,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = contentPadding,
+//        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
         modifier = modifier
     ) {
@@ -112,7 +112,7 @@ fun FlightResultsPreview() {
         // The preview content padding values are the
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightResults(
-            airport = "YYC Calgary International Airport",
+            resultsLabel = "Flights from YYC",
             flights = listOf("Flight 1", "Flight 2", "Flight 3", "Flight 4"),
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)

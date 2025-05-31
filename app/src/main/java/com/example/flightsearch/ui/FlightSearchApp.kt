@@ -24,6 +24,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.flightsearch.R
+import com.example.flightsearch.data.InterimAirportDataProvider
+import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.ui.screens.HomeScreen
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 
@@ -45,43 +47,58 @@ fun FlightSearchApp() {
 
             // TODO re-factor state and event actions here from HomeScreen
             val temporarySearchValueUiState = rememberSaveable { mutableStateOf("") }
+
+            val AirportDetailsSaver = listSaver(
+                save = {
+                    listOf<Any>(it.value.id, it.value.iataCode, it.value.name, it.value.passengers)
+                },
+                restore = { data ->
+                    mutableStateOf(
+                        AirportDetails(
+                            id = data[0] as Int,
+                            iataCode = data[1] as String,
+                            name = data[2] as String,
+                            passengers = data[3] as Int
+                        )
+                    )
+                }
+            )
+            val temporaryDepartureValueUiState = rememberSaveable(
+                saver = AirportDetailsSaver
+            ) {
+                mutableStateOf(InterimAirportDataProvider.defaultNothingAirport)
+            }
+
             val temporaryShowFlightsUiState = rememberSaveable { mutableStateOf(false) }
             val temporaryShowFavoritesUiState = rememberSaveable { mutableStateOf(false) }
 
             // TODO replace with view model eventually
-            val temporaryOptionsDataSource = listOf(
-                "YYC calgary international airport",
-                "YEG edmonton international airport",
-                "YVR vancouver international airport",
-                "YYZ toronto international airport",
-                "YWG winnipeg international airport"
-            )
+            val temporaryOptionsDataSource = InterimAirportDataProvider.airports
 
             // TODO replace with view model eventually
             // TODO replace with airport detail domain objects
-            val temporaryFilteredOptions = temporaryOptionsDataSource.filter {
+            val temporaryFilteredOptions = temporaryOptionsDataSource.filter { airportDetails ->
                 temporarySearchValueUiState.value.isNotBlank() &&
-                        it.contains(
+                        (airportDetails.name.contains(
                             other = temporarySearchValueUiState.value,
                             ignoreCase = true
-                        )
+                        ) || airportDetails.iataCode.contains(
+                            other = temporarySearchValueUiState.value,
+                            ignoreCase = true
+                        ))
             }
 
             // TODO replace with view model eventually
             // TODO replace with flight detail domain objects
-            var temporaryFlightList = listOf(
-                "Flight 1",
-                "Flight 2",
-                "Flight 3",
-                "Flight 4",
-                "Flight 5",
-                "Flight 6",
-                "Flight 7",
-                "Flight 8",
-                "Flight 9",
-                "Flight 10",
-                "Flight 11",
-            )
+            Log.i("FilteredSearch", "FlightSearchApp sets temporary flight list to EMPTY LIST")
+            val temporaryPossibleFlights: SnapshotStateList<String> = rememberSaveable(
+                saver = listSaver(
+                    save = { it.toList() },
+                    restore = { it.toMutableStateList() }
+                )
+            ) {
+                mutableStateListOf() // initial value is EMPTY
+            }
 
             val temporaryFavoriteFlights: SnapshotStateList<String> = rememberSaveable(
                 saver = listSaver(
@@ -89,16 +106,18 @@ fun FlightSearchApp() {
                     restore = { it.toMutableStateList() }
                 )
             ) {
-                mutableStateListOf()
-//                mutableStateListOf("favorite flight 1")
+                mutableStateListOf() // initial value is EMPTY
             }
 
             // TODO replace with view model eventually - initialization
-            temporaryShowFavoritesUiState.value = validateFavoritesUiState(temporarySearchValueUiState.value, temporaryFavoriteFlights.isNotEmpty())
+            temporaryShowFavoritesUiState.value = validateFavoritesUiState(
+                temporarySearchValueUiState.value,
+                temporaryFavoriteFlights.isNotEmpty()
+            )
 
             // TODO replace with view model eventually
             val onSearchValueChange: (String) -> Unit = {
-                Log.i("FilteredSearch", "The current search value to remember: $it")
+                Log.i("FilteredSearch", "FlightSearchApp The current search value to remember: $it")
                 temporarySearchValueUiState.value = it
                 if (it.isBlank()) {
                     temporaryShowFlightsUiState.value = false
@@ -108,34 +127,96 @@ fun FlightSearchApp() {
                 // When the user clears the search value, and there exists favorite flights,
                 // then show the favorite flights; the header text is "Favorite routes"
                 temporaryShowFavoritesUiState.value =
-                    it.isBlank() && temporaryFavoriteFlights.isNotEmpty()
-                temporaryShowFavoritesUiState.value = validateFavoritesUiState(it, temporaryFavoriteFlights.isNotEmpty())
+                    validateFavoritesUiState(it, temporaryFavoriteFlights.isNotEmpty())
 
             }
 
+            val onSetDepartureSelection: (AirportDetails) -> Unit = {
+                Log.i(
+                    "FilteredSearch",
+                    "FlightSearchApp In set departure selection, the selected departure to remember: $it"
+                )
+                temporaryDepartureValueUiState.value = it
 
-            // TODO replace with view model eventually
-            val onGetFlights: () -> Unit = {
-                Log.i("FilteredSearch", "The app will display a list of flights.")
+                // TODO when the airport details domain object is created,
+                //      then set the search value to the airport code (ie. YYC).
+                //      for now, use the departure string.
+                temporarySearchValueUiState.value = temporaryDepartureValueUiState.value.iataCode
+
+                // When the departure is selected, then get the possible flights for it.
+                // Will schedule recomposition - is REMEMBERED and MUTABLE.
+                Log.i(
+                    "FilteredSearch",
+                    "FlightSearchApp in set departure selection, The app will display a list of flights."
+                )
                 temporaryShowFlightsUiState.value = true
+                // TODO call repo/db to GET flights using selected departure
                 // TODO get fake Flight list
-                temporaryFlightList = listOf("flight 1", "flight 2", "flight 3")
+                temporaryPossibleFlights.clear()
+                temporaryPossibleFlights.addAll(mutableListOf("flight 9", "flight 8", "flight 7"))
+                Log.i(
+                    "FilteredSearch",
+                    "FlightSearchApp in set departure selection, temporary flights list is:"
+                )
+                Log.i("FilteredSearch", temporaryPossibleFlights.toString())
             }
 
             // TODO replace with view model eventually
             val onToggleFavorites: (String) -> Unit = { favoriteFlight ->
-                Log.i("FilteredSearch", "The event toggles favorites: $favoriteFlight")
+                Log.i("FilteredSearch", "The event toggle favorites: $favoriteFlight")
                 if (temporaryFavoriteFlights.contains(favoriteFlight)) {
-                    val temp = temporaryFavoriteFlights.filter {
-                        it != favoriteFlight
+                    Log.i("FilteredSearch", "The event toggle favorites removes flight")
+                    if (temporaryFavoriteFlights.size == 1) {
+                        temporaryFavoriteFlights.clear()
+                    } else {
+                        val temp = temporaryFavoriteFlights.filter {
+                            it != favoriteFlight
+                        }
+                        temporaryFavoriteFlights.clear()
+                        temporaryFavoriteFlights.addAll(temp)
+
                     }
-                    temporaryFavoriteFlights.clear()
-                    temporaryFavoriteFlights.addAll(temp)
-                }
-                if (!temporaryFavoriteFlights.contains(favoriteFlight)) {
+                } else { // does not contain flight
+                    Log.i("FilteredSearch", "The event toggle favorites adds flight")
                     temporaryFavoriteFlights.add(favoriteFlight)
                 }
             }
+
+            // TODO replace with view model eventually
+            val displayFlights =
+                if (temporaryShowFavoritesUiState.value) {
+                    Log.i(
+                        "FilteredSearch",
+                        "FlightSearchApp in set display flights, assign favorite flights"
+                    )
+                    Log.i("FilteredSearch", temporaryFavoriteFlights.toString())
+                    temporaryFavoriteFlights
+                } else if (temporaryShowFlightsUiState.value) {
+                    Log.i(
+                        "FilteredSearch",
+                        "FlightSearchApp in set display flights, assign possible flights"
+                    )
+                    Log.i("FilteredSearch", temporaryPossibleFlights.toString())
+                    temporaryPossibleFlights
+                } else {
+                    Log.i(
+                        "FilteredSearch",
+                        "FlightSearchApp in set display flights, otherwise assign no flights"
+                    )
+                    mutableListOf()
+                }
+
+            Log.i("FilteredSearch", "FlightSearchApp display flights list is:")
+            Log.i("FilteredSearch", displayFlights.toString())
+
+            val resultsLabel: String =
+                if (temporaryShowFavoritesUiState.value) {
+                    "Favorite routes"
+                } else if (temporaryShowFlightsUiState.value) {
+                    "Flights from ${temporaryDepartureValueUiState.value.iataCode}"
+                } else {
+                    ""
+                }
 
             // TODO in the fullness of time, re-factor state values to UI State class
             // TODO in the fullness of time, re-factor these to the view model
@@ -144,24 +225,22 @@ fun FlightSearchApp() {
             // TODO pass ui state to home screen
             // TODO pass event actions to home screen
             // TODO pass temporary flight list; eventually pass list of domain objects
+
+            Log.i("FilteredSearch", "FlightSearchApp Call HomeScreen")
             HomeScreen(
                 searchValue = temporarySearchValueUiState.value,
-                showFlights = temporaryShowFlightsUiState.value,
-                showFavorites = temporaryShowFavoritesUiState.value,
-                searchOptions = temporaryFilteredOptions, // temporaryOptions.toList(),
-                flights = temporaryFlightList,
+                searchOptions = temporaryFilteredOptions,
+                resultsLabel = resultsLabel,
+                flights = displayFlights, // the display flights - might be possible or favorite list
                 onSearchValueChange = onSearchValueChange,
-                onGetFlights = onGetFlights,
+                onSetDepartureSelection = onSetDepartureSelection,
                 onToggleFavorites = onToggleFavorites,
                 contentPadding = it
             )
+
         }
     }
 
-}
-
-fun validateFavoritesUiState(searchValue: String, flightsExist: Boolean): Boolean {
-    return searchValue.isBlank() && flightsExist
 }
 
 @Composable
@@ -188,4 +267,8 @@ fun FlightSearchAppPreview() {
     FlightSearchTheme {
         FlightSearchApp()
     }
+}
+
+private fun validateFavoritesUiState(searchValue: String, flightsExist: Boolean): Boolean {
+    return searchValue.isBlank() && flightsExist
 }
