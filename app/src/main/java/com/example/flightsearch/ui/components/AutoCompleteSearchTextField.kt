@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.ui.theme.FlightSearchTheme
+import com.example.flightsearch.utils.getFormattedAirport
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,16 +112,7 @@ fun AutoCompleteSearchTextField(
         ) {
             options.forEach { selectionOption ->
 
-                val annotatedAirportDetails = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(selectionOption.iataCode)
-                    }
-                    append("  ")
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Normal)) {
-                        append(selectionOption.name)
-
-                    }
-                }
+                val annotatedAirportDetails = getFormattedAirport(selectionOption.iataCode, selectionOption.name)
 
                 DropdownMenuItem(
                     text = {

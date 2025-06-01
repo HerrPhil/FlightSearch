@@ -8,7 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.flightsearch.data.InterimAirportDataProvider
 import com.example.flightsearch.domain.AirportDetails
+import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.ui.components.AutoCompleteSearchTextField
 import com.example.flightsearch.ui.components.FlightResults
 import com.example.flightsearch.ui.theme.FlightSearchTheme
@@ -18,10 +20,10 @@ fun HomeScreen(
     searchValue: String,
     searchOptions: List<AirportDetails>,
     resultsLabel: String,
-    flights: List<String>,
+    flights: List<FlightDetails>,
     onSearchValueChange: (String) -> Unit,
     onSetDepartureSelection: (AirportDetails) -> Unit,
-    onToggleFavorites: (String) -> Unit,
+    onToggleFavorites: (FlightDetails) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -60,32 +62,10 @@ fun HomeScreen(
 @Composable
 fun HomeScreenPreview() {
     FlightSearchTheme {
-
-        val previewSearchOptions = listOf(
-            AirportDetails(
-                id = 1,
-                iataCode = "YYC",
-                name = "Calgary International Airport",
-                passengers = 100
-            ),
-            AirportDetails(
-                id = 2,
-                iataCode = "YEG",
-                name = "Edmonton International Airport",
-                passengers = 200
-            ),
-            AirportDetails(
-                id = 1,
-                iataCode = "YWG",
-                name = "Winnipeg International Airport",
-                passengers = 300
-            ),
-        )
-
         HomeScreen(
             searchValue = "YYC",
-            searchOptions = previewSearchOptions,
-            flights = listOf("flight 1", "flight 2", "flight 3", "flight 4"),
+            searchOptions = InterimAirportDataProvider.airports,
+            flights = InterimAirportDataProvider.flights,
             resultsLabel = "Flights from YYC",
             onSearchValueChange = {},
             onSetDepartureSelection = {},

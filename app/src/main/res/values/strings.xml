@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Flight Search</string>
     <string name="enter_departure_airport">Enter departure airport</string>
+    <string name="departure_label">DEPART</string>
+    <string name="arrival_label">ARRIVE</string>
+    <string name="favorite_flight_icon">Favorite flight icon</string>
 </resources>

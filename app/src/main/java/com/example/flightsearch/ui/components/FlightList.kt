@@ -3,6 +3,8 @@ package com.example.flightsearch.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,21 +13,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
+import com.example.flightsearch.data.InterimAirportDataProvider
+import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.ui.theme.FlightSearchTheme
+import com.example.flightsearch.utils.getFormattedAirport
 
 // TODO re-factor flights to be the FlightDetail domain object
 @Composable
 fun FlightResults(
     resultsLabel: String,
-    flights: List<String>,
-    onClick: (String) -> Unit, // This will be the item click to add/remove flight to/from favorites
+    flights: List<FlightDetails>,
+    onClick: (FlightDetails) -> Unit, // This will be the item click to add/remove flight to/from favorites
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -53,8 +64,8 @@ fun FlightResults(
 // TODO re-factor flights to be the FlightDetail domain object
 @Composable
 private fun FlightList(
-    flights: List<String>,
-    onClick: (String) -> Unit, // This will be the item click to add/remove flight to/from favorites
+    flights: List<FlightDetails>,
+    onClick: (FlightDetails) -> Unit, // This will be the item click to add/remove flight to/from favorites
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp) // inter-composable padding
 ) {
@@ -68,7 +79,7 @@ private fun FlightList(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
         modifier = modifier
     ) {
-        items(flights, key = { flight -> flight }) { flight ->
+        items(flights, key = { flight -> flight.flightID }) { flight ->
 
             FlightListItem(
                 flight = flight,
@@ -81,8 +92,8 @@ private fun FlightList(
 
 @Composable
 private fun FlightListItem(
-    flight: String,
-    onItemClick: (String) -> Unit,
+    flight: FlightDetails,
+    onItemClick: (FlightDetails) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -91,16 +102,53 @@ private fun FlightListItem(
         shape = RoundedCornerShape(dimensionResource(R.dimen.card_corner_radius)),
         onClick = { onItemClick(flight) }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding( // intra-item padding
-                    vertical = dimensionResource(R.dimen.padding_small),
-                    horizontal = dimensionResource(R.dimen.padding_medium)
-                )
+
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = flight)
-            // TODO when flight detail domain object added, then more Text details are included
+
+
+            Column(
+                modifier = Modifier
+//                    .fillMaxWidth()
+                    .padding( // intra-item padding
+                        vertical = dimensionResource(R.dimen.padding_small),
+                        horizontal = dimensionResource(R.dimen.padding_medium)
+                    )
+            ) {
+                Text(
+                    text = stringResource(R.string.departure_label),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    getFormattedAirport(flight.departureIataCode, flight.departureAirportName),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = stringResource(R.string.arrival_label),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    getFormattedAirport(flight.arrivalIataCode, flight.arrivalAirportName),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Icon(
+                painter = if (flight.favorite) {
+                    painterResource(R.drawable.favorite_flight)
+                } else {
+                    painterResource(R.drawable.default_flight)
+                },
+                contentDescription = stringResource(R.string.favorite_flight_icon),
+                tint = Color.Unspecified, // required to show color in drawable resource
+                modifier = Modifier.padding(end = 16.dp)
+            )
         }
     }
 }
@@ -113,7 +161,7 @@ fun FlightResultsPreview() {
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightResults(
             resultsLabel = "Flights from YYC",
-            flights = listOf("Flight 1", "Flight 2", "Flight 3", "Flight 4"),
+            flights = InterimAirportDataProvider.flights,
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)
         )
@@ -127,7 +175,7 @@ fun FlightListPreview() {
         // The preview content padding values are the
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightList(
-            flights = listOf("Flight 1", "Flight 2", "Flight 3", "Flight 4"),
+            flights = InterimAirportDataProvider.flights,
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)
         )
@@ -138,6 +186,6 @@ fun FlightListPreview() {
 @Composable
 fun FlightListItemPreview() {
     FlightSearchTheme {
-        FlightListItem(flight = "Flight 1", {}, modifier = Modifier)
+        FlightListItem(flight = InterimAirportDataProvider.flights[0], {}, modifier = Modifier)
     }
 }
