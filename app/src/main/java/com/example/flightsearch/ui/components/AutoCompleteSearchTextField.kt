@@ -19,16 +19,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.input.TextFieldValue.Companion.Saver
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
@@ -39,47 +37,31 @@ import com.example.flightsearch.utils.getFormattedAirport
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoCompleteSearchTextField(
+    airportDropdownExpanded: Boolean,
     value: String,
+    options: List<AirportDetails>,
+    toggleAirportDropdown: (Boolean) -> Unit,
+    collapseAirportDropdown: () -> Unit,
     onValueChange: (String) -> Unit,
     onSetDepartureSelection: (AirportDetails) -> Unit,
-    options: List<AirportDetails>,
     modifier: Modifier = Modifier
 ) {
 
     Log.i("FilteredSearch", "In AutoCompleteSearchTextField")
 
-    var expanded by remember { mutableStateOf(false) }
-
-    var textFieldValueState by remember {
-        mutableStateOf(
-            TextFieldValue(
-                text = value,
-                selection = TextRange(value.length)
-            )
-        )
-    }
-
-    Log.i("FilteredSearch", "number of options: ${options.size}")
-    Log.i("FilteredSearch", "test for trailing icon and drop down menu")
-    Log.i("FilteredSearch", "exposed drop down menu expanded: $expanded")
-    Log.i(
-        "FilteredSearch",
-        "exposed drop down menu expanded text field value is not blank: ${value.isNotBlank()}"
+    val textFieldValue = TextFieldValue(
+        text = value,
+        selection = TextRange(value.length)
     )
 
     ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
+        expanded = airportDropdownExpanded,
+        onExpandedChange = toggleAirportDropdown,
         modifier = modifier
     ) {
         TextField(
-            value = textFieldValueState,
-            onValueChange = { filterValue ->
-                Log.i("FilteredSearch", "TextField onValueChange")
-                textFieldValueState =
-                    filterValue.copy(selection = TextRange(filterValue.text.length))
-                onValueChange(filterValue.text)
-            },
+            value = textFieldValue,
+            onValueChange = { filterValue -> onValueChange(filterValue.text) },
             label = {
                 Text(text = stringResource(R.string.enter_departure_airport))
             },
@@ -91,7 +73,7 @@ fun AutoCompleteSearchTextField(
             },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
+                    expanded = airportDropdownExpanded
                 )
             },
             colors = ExposedDropdownMenuDefaults.textFieldColors().copy(
@@ -107,12 +89,13 @@ fun AutoCompleteSearchTextField(
                 .menuAnchor(type = MenuAnchorType.SecondaryEditable, enabled = true)
         )
         ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
+            expanded = airportDropdownExpanded,
+            onDismissRequest = collapseAirportDropdown
         ) {
             options.forEach { selectionOption ->
 
-                val annotatedAirportDetails = getFormattedAirport(selectionOption.iataCode, selectionOption.name)
+                val annotatedAirportDetails =
+                    getFormattedAirport(selectionOption.iataCode, selectionOption.name)
 
                 DropdownMenuItem(
                     text = {
@@ -120,11 +103,7 @@ fun AutoCompleteSearchTextField(
                     },
                     onClick = {
                         Log.i("FilteredSearch", "MenuItem onClick")
-                        expanded = false
-                        textFieldValueState = TextFieldValue(
-                            text = annotatedAirportDetails.text,
-                            selection = TextRange(annotatedAirportDetails.length)
-                        )
+                        collapseAirportDropdown()
                         onSetDepartureSelection(selectionOption)
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -163,6 +142,14 @@ fun AutoCompleteSearchTextFieldPreview() {
             ),
         )
 
-        AutoCompleteSearchTextField("test", { }, {}, previewSearchOptions)
+        AutoCompleteSearchTextField(
+            airportDropdownExpanded = false,
+            value = "test",
+            options = previewSearchOptions,
+            toggleAirportDropdown = {},
+            collapseAirportDropdown = {},
+            onValueChange = {},
+            onSetDepartureSelection = {}
+        )
     }
 }

@@ -44,9 +44,22 @@ fun FlightSearchApp() {
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
+
             // TODO access the view model and ui state here
 
-            // TODO re-factor state and event actions here from HomeScreen
+            val temporaryAirportDropdownExpandedUiState = rememberSaveable { mutableStateOf(false) }
+            val toggleAirportDropdown: (Boolean) -> Unit = { expanded ->
+                temporaryAirportDropdownExpandedUiState.value = expanded
+                Log.i(
+                    "FilteredSearch",
+                    "UI State says expanded state after is ${temporaryAirportDropdownExpandedUiState.value}"
+                )
+            }
+            val collapseAirportDropdown: () -> Unit = {
+                temporaryAirportDropdownExpandedUiState.value = false
+            }
+
+
             val temporarySearchValueUiState = rememberSaveable { mutableStateOf("") }
 
             val AirportDetailsSaver = listSaver(
@@ -122,12 +135,9 @@ fun FlightSearchApp() {
             }
 
 
-
-
-
             // TODO replace with view model eventually - initialization
             temporaryShowFavoritesUiState.value = validateFavoritesUiState(
-                temporarySearchValueUiState.value,
+                temporarySearchValueUiState.value.isBlank(),
                 temporaryFavoriteFlights.isNotEmpty()
             )
 
@@ -139,11 +149,10 @@ fun FlightSearchApp() {
                     temporaryShowFlightsUiState.value = false
                 }
 
-                // The business rule for favorites; here it is.
-                // When the user clears the search value, and there exists favorite flights,
-                // then show the favorite flights; the header text is "Favorite routes"
-                temporaryShowFavoritesUiState.value =
-                    validateFavoritesUiState(it, temporaryFavoriteFlights.isNotEmpty())
+                temporaryShowFavoritesUiState.value = validateFavoritesUiState(
+                    it.isBlank(),
+                    temporaryFavoriteFlights.isNotEmpty()
+                )
 
             }
 
@@ -243,10 +252,13 @@ fun FlightSearchApp() {
 
             Log.i("FilteredSearch", "FlightSearchApp Call HomeScreen")
             HomeScreen(
+                airportDropdownExpanded = temporaryAirportDropdownExpandedUiState.value,
                 searchValue = temporarySearchValueUiState.value,
                 searchOptions = temporaryFilteredOptions,
                 resultsLabel = resultsLabel,
                 flights = displayFlights, // the display flights - might be possible or favorite list
+                toggleAirportDropdown = toggleAirportDropdown,
+                collapseAirportDropdown = collapseAirportDropdown,
                 onSearchValueChange = onSearchValueChange,
                 onSetDepartureSelection = onSetDepartureSelection,
                 onToggleFavorites = onToggleFavorites,
@@ -284,6 +296,9 @@ fun FlightSearchAppPreview() {
     }
 }
 
-private fun validateFavoritesUiState(searchValue: String, flightsExist: Boolean): Boolean {
-    return searchValue.isBlank() && flightsExist
+// The business rule for favorites; here it is.
+// When the user clears the search value, and there exists favorite flights,
+// then show the favorite flights.
+private fun validateFavoritesUiState(searchValueIsBlank: Boolean, flightsExist: Boolean): Boolean {
+    return searchValueIsBlank && flightsExist
 }

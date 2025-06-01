@@ -17,10 +17,13 @@ import com.example.flightsearch.ui.theme.FlightSearchTheme
 
 @Composable
 fun HomeScreen(
+    airportDropdownExpanded: Boolean,
     searchValue: String,
     searchOptions: List<AirportDetails>,
     resultsLabel: String,
     flights: List<FlightDetails>,
+    toggleAirportDropdown: (Boolean) -> Unit,
+    collapseAirportDropdown: () -> Unit,
     onSearchValueChange: (String) -> Unit,
     onSetDepartureSelection: (AirportDetails) -> Unit,
     onToggleFavorites: (FlightDetails) -> Unit,
@@ -39,10 +42,13 @@ fun HomeScreen(
 
         Log.i("FilteredSearch", "Call AutoCompleteSearchTextField")
         AutoCompleteSearchTextField(
+            airportDropdownExpanded,
             searchValue,
+            searchOptions,
+            toggleAirportDropdown,
+            collapseAirportDropdown,
             onSearchValueChange,
             onSetDepartureSelection,
-            searchOptions,
             modifier.padding(16.dp)
         )
 
@@ -63,10 +69,13 @@ fun HomeScreen(
 fun HomeScreenPreview() {
     FlightSearchTheme {
         HomeScreen(
+            airportDropdownExpanded = false,
             searchValue = "YYC",
             searchOptions = InterimAirportDataProvider.airports,
             flights = InterimAirportDataProvider.flights,
             resultsLabel = "Flights from YYC",
+            toggleAirportDropdown = {},
+            collapseAirportDropdown = {},
             onSearchValueChange = {},
             onSetDepartureSelection = {},
             onToggleFavorites = {}
