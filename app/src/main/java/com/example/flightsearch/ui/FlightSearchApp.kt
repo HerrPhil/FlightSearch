@@ -23,15 +23,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.flightsearch.R
 import com.example.flightsearch.data.InterimAirportDataProvider
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
+import com.example.flightsearch.ui.screens.FlightsViewModel
 import com.example.flightsearch.ui.screens.HomeScreen
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 
 @Composable
-fun FlightSearchApp() {
+fun FlightSearchApp(
+//    viewModel: FlightsViewModel = viewModel( factory = FlightsViewModel.factory)
+) {
 
     // Add some scroll behavior to the top app bar
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -45,9 +49,14 @@ fun FlightSearchApp() {
             modifier = Modifier.fillMaxSize()
         ) {
 
+            //
             // TODO access the view model and ui state here
+            //
 
+            // TODO replace with view model eventually - represents current state of dropdown UI = ui state
             val temporaryAirportDropdownExpandedUiState = rememberSaveable { mutableStateOf(false) }
+
+            // TODO replace with view model eventually - transferred to view model
             val toggleAirportDropdown: (Boolean) -> Unit = { expanded ->
                 temporaryAirportDropdownExpandedUiState.value = expanded
                 Log.i(
@@ -55,11 +64,14 @@ fun FlightSearchApp() {
                     "UI State says expanded state after is ${temporaryAirportDropdownExpandedUiState.value}"
                 )
             }
+
+            // TODO replace with view model eventually - transferred to view model
             val collapseAirportDropdown: () -> Unit = {
                 temporaryAirportDropdownExpandedUiState.value = false
             }
 
 
+            // TODO replace with view model eventually - represents current state of textfield UI = ui state
             val temporarySearchValueUiState = rememberSaveable { mutableStateOf("") }
 
             val AirportDetailsSaver = listSaver(
@@ -77,23 +89,29 @@ fun FlightSearchApp() {
                     )
                 }
             )
+            // TODO replace with view model eventually - represents current state of selected departure airport UI = ui state
             val temporaryDepartureValueUiState = rememberSaveable(
                 saver = AirportDetailsSaver
             ) {
-                mutableStateOf(InterimAirportDataProvider.defaultNothingAirport)
+                mutableStateOf(AirportDetails(0, "", "", 0))
+//                mutableStateOf(InterimAirportDataProvider.defaultNothingAirport)
             }
 
-            val temporaryShowFlightsUiState = rememberSaveable { mutableStateOf(false) }
+            // TODO replace with view model eventually - represents business logic of when to show possible flights
+            val temporaryShowPossibleFlightsUiState = rememberSaveable { mutableStateOf(false) }
+
+            // TODO replace with view model eventually - represents business logic of when to show favorite flights
             val temporaryShowFavoritesUiState = rememberSaveable { mutableStateOf(false) }
 
-            // TODO replace with view model eventually
-            val temporaryOptionsDataSource = InterimAirportDataProvider.airports
+            // TODO replace with view model eventually - represents repository call
+            val temporaryDepartureAirportOptionsDataSource = InterimAirportDataProvider.airports
 
-            // TODO replace with view model eventually
+            // TODO replace with view model eventually - represents repository call
             val temporaryFlightsDataSource = InterimAirportDataProvider.flights
 
-            // TODO replace with view model eventually
-            val temporaryFilteredOptions = temporaryOptionsDataSource.filter { airportDetails ->
+            // TODO replace with view model eventually - represents current state of departure airport options UI = ui state.
+            //      Transferred.
+            val temporaryFilteredOptions = temporaryDepartureAirportOptionsDataSource.filter { airportDetails ->
                 temporarySearchValueUiState.value.isNotBlank() &&
                         (airportDetails.name.contains(
                             other = temporarySearchValueUiState.value,
@@ -104,7 +122,7 @@ fun FlightSearchApp() {
                         ))
             }
 
-            // TODO replace with view model eventually
+            // TODO replace with view model eventually - represents business logic of when to show favorite flights
             val temporaryPossibleFlights: SnapshotStateList<FlightDetails> = rememberSaveable(
                 saver = listSaver(
                     save = { it.toList() },
@@ -114,7 +132,7 @@ fun FlightSearchApp() {
                 mutableStateListOf() // initial value is EMPTY
             }
 
-            // TODO replace with view model eventually
+            // TODO replace with view model eventually - represents business logic of when to show favorite flights
             val temporaryFavoriteFlights: SnapshotStateList<FlightDetails> = rememberSaveable(
                 saver = listSaver(
                     save = { it.toList() },
@@ -135,18 +153,20 @@ fun FlightSearchApp() {
             }
 
 
-            // TODO replace with view model eventually - initialization
+            // TODO replace with view model eventually - represents business logic of when to show favorite flights.
+            //      Transferred.
             temporaryShowFavoritesUiState.value = validateFavoritesUiState(
                 temporarySearchValueUiState.value.isBlank(),
                 temporaryFavoriteFlights.isNotEmpty()
             )
 
             // TODO replace with view model eventually
+            // Transferred update of search value only
             val onSearchValueChange: (String) -> Unit = {
                 Log.i("FilteredSearch", "FlightSearchApp The current search value to remember: $it")
                 temporarySearchValueUiState.value = it
                 if (it.isBlank()) {
-                    temporaryShowFlightsUiState.value = false
+                    temporaryShowPossibleFlightsUiState.value = false
                 }
 
                 temporaryShowFavoritesUiState.value = validateFavoritesUiState(
@@ -174,7 +194,7 @@ fun FlightSearchApp() {
                     "FilteredSearch",
                     "FlightSearchApp in set departure selection, The app will display a list of flights."
                 )
-                temporaryShowFlightsUiState.value = true
+                temporaryShowPossibleFlightsUiState.value = true
                 // TODO call repo/db to GET flights using selected departure
                 // TODO get fake Flight list
                 temporaryPossibleFlights.clear()
@@ -211,7 +231,7 @@ fun FlightSearchApp() {
                 }
             }
 
-            // TODO replace with view model eventually
+            // TODO replace with view model eventually - represents current state of flights (possible or favorites) UI = ui state
             val displayFlights =
                 if (temporaryShowFavoritesUiState.value) {
                     Log.i(
@@ -219,7 +239,7 @@ fun FlightSearchApp() {
                         "FlightSearchApp in set display flights, assign favorite flights"
                     )
                     temporaryFavoriteFlights
-                } else if (temporaryShowFlightsUiState.value) {
+                } else if (temporaryShowPossibleFlightsUiState.value) {
                     Log.i(
                         "FilteredSearch",
                         "FlightSearchApp in set display flights, assign possible flights"
@@ -236,7 +256,7 @@ fun FlightSearchApp() {
             val resultsLabel: String =
                 if (temporaryShowFavoritesUiState.value) {
                     "Favorite routes"
-                } else if (temporaryShowFlightsUiState.value) {
+                } else if (temporaryShowPossibleFlightsUiState.value) {
                     "Flights from ${temporaryDepartureValueUiState.value.iataCode}"
                 } else {
                     ""

@@ -2,14 +2,33 @@ package com.example.flightsearch.data
 
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 object InterimAirportDataProvider {
 
     val airports = getInterimAirportDetails()
 
-    val defaultNothingAirport = AirportDetails(0, "", "", 0)
-
     val flights = getInterimFlightDetails()
+
+    val favorites = mutableListOf<FlightDetails>()
+
+    fun getAirports(): Flow<List<AirportDetails>> = flow { emit(airports) }
+
+    fun getPossibleFlights(departureIataCode: String): Flow<List<FlightDetails>> = flow { emit(flights) }
+
+    fun getFavoriteFlights(): Flow<List<FlightDetails>> = flow { emit(favorites) }
+
+    suspend fun addFavorite(flightDetails: FlightDetails) {
+        delay(500)
+        if (favorites.isEmpty() || !favorites.contains(flightDetails)) favorites.add(flightDetails)
+    }
+
+    suspend fun removeFavorite(flightDetails: FlightDetails) {
+        delay(500)
+        if (favorites.isNotEmpty() && favorites.contains(flightDetails)) favorites.remove(flightDetails)
+    }
 
     private fun getInterimAirportDetails():List<AirportDetails> {
         return listOf(
