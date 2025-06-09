@@ -13,275 +13,140 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.flightsearch.R
-import com.example.flightsearch.data.InterimAirportDataProvider
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.ui.screens.FlightsViewModel
 import com.example.flightsearch.ui.screens.HomeScreen
 import com.example.flightsearch.ui.theme.FlightSearchTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun FlightSearchApp(
-//    viewModel: FlightsViewModel = viewModel( factory = FlightsViewModel.factory)
+    viewModel: FlightsViewModel = viewModel(factory = FlightsViewModel.factory)
 ) {
 
+    Log.i("uistate", "FlightSearchAppModel the beginning of app composable")
     // Add some scroll behavior to the top app bar
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+
+    // Reference the UI state values of the view model
+    val flightSearchUiState by viewModel.flightSearchUiState.collectAsState()
+    Log.i(
+        "uistate",
+        "FlightSearchAppModel the ui state search value = <<${flightSearchUiState.searchValue}>>"
+    )
+
+    Log.i("uistate", "expect new airport details because of user search value")
+    val airportResultsUiState by viewModel.displayAirportDetailsUiState.collectAsState()
+    Log.i(
+        "uistate",
+        "FlightSearchAppModel size of get filtered airport options = ${airportResultsUiState.airportDetailsList.size}"
+    )
+
+    Log.i("uistate", "expect new airport details because of user airport details selection")
+    val flightResultsUiState by viewModel.displayFlightDetailsUiState.collectAsState()
+    Log.i(
+        "uistate",
+        "FlightSearchAppModel size of get flight details of selected airport option = ${flightResultsUiState.flightDetailsList.size}"
+    )
+
+    val coroutineScope = rememberCoroutineScope()
 
     // Create a scaffold to contain the screen
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = { FlightSearchTopAppBar(scrollBehavior = scrollBehavior) },
+        topBar = { FlightSearchModelTopAppBar(scrollBehavior = scrollBehavior) },
     ) {
+
+        Log.i("uistate", "FlightSearchAppModel the beginning of scaffold composable")
+
         Surface(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            //
-            // TODO access the view model and ui state here
-            //
+            Log.i("uistate", "FlightSearchAppModel the beginning of surface composable")
 
-            // TODO replace with view model eventually - represents current state of dropdown UI = ui state
-            val temporaryAirportDropdownExpandedUiState = rememberSaveable { mutableStateOf(false) }
-
-            // TODO replace with view model eventually - transferred to view model
-            val toggleAirportDropdown: (Boolean) -> Unit = { expanded ->
-                temporaryAirportDropdownExpandedUiState.value = expanded
+            val toggleAirportDropdownByViewModel: (Boolean) -> Unit = { expanded ->
                 Log.i(
-                    "FilteredSearch",
-                    "UI State says expanded state after is ${temporaryAirportDropdownExpandedUiState.value}"
+                    "uistate",
+                    "FlightSearchAppModel click event toggleAirportDropdownByViewModel($expanded)"
                 )
+                viewModel.toggleAirportDropdown(expanded)
             }
 
-            // TODO replace with view model eventually - transferred to view model
-            val collapseAirportDropdown: () -> Unit = {
-                temporaryAirportDropdownExpandedUiState.value = false
+            val collapseAirportDropdownByViewModel: () -> Unit = {
+                Log.i(
+                    "uistate",
+                    "FlightSearchAppModel click event collapseAirportDropdownByViewModel()"
+                )
+                viewModel.toggleAirportDropdown(false) // false = collapse dropdown
             }
 
+            val onSearchValueChangedByViewModel: (String) -> Unit = {
+                Log.i(
+                    "uistate",
+                    "FlightSearchAppModel click event onSearchValueChangedByViewModel($it)"
+                )
+                viewModel.updateSearchValue(it)
+            }
 
-            // TODO replace with view model eventually - represents current state of textfield UI = ui state
-            val temporarySearchValueUiState = rememberSaveable { mutableStateOf("") }
+            val onSetDepartureSelectionByViewModel: (AirportDetails) -> Unit = {
+                Log.i(
+                    "uistate",
+                    "FlightSearchAppModel click event onSetDepartureSelectionByViewModel($it)"
+                )
+                viewModel.updateDepartureDetails(it)
+            }
 
-            val AirportDetailsSaver = listSaver(
-                save = {
-                    listOf<Any>(it.value.id, it.value.iataCode, it.value.name, it.value.passengers)
-                },
-                restore = { data ->
-                    mutableStateOf(
-                        AirportDetails(
-                            id = data[0] as Int,
-                            iataCode = data[1] as String,
-                            name = data[2] as String,
-                            passengers = data[3] as Int
-                        )
+            val onToggleFavoritesByViewModel: (FlightDetails) -> Unit = { favoriteFlight ->
+                Log.i(
+                    "uistate",
+                    "FlightSearchAppModel click event onToggleFavoritesByViewModel(${favoriteFlight.departureIataCode}, ${favoriteFlight.arrivalIataCode})"
+                )
+                if (viewModel.exists(favoriteFlight)) {
+                    Log.i(
+                        "uistate",
+                        "FlightSearchAppModel click event onToggleFavoritesByViewModel remove this flight"
                     )
-                }
-            )
-            // TODO replace with view model eventually - represents current state of selected departure airport UI = ui state
-            val temporaryDepartureValueUiState = rememberSaveable(
-                saver = AirportDetailsSaver
-            ) {
-                mutableStateOf(AirportDetails(0, "", "", 0))
-//                mutableStateOf(InterimAirportDataProvider.defaultNothingAirport)
-            }
-
-            // TODO replace with view model eventually - represents business logic of when to show possible flights
-            val temporaryShowPossibleFlightsUiState = rememberSaveable { mutableStateOf(false) }
-
-            // TODO replace with view model eventually - represents business logic of when to show favorite flights
-            val temporaryShowFavoritesUiState = rememberSaveable { mutableStateOf(false) }
-
-            // TODO replace with view model eventually - represents repository call
-            val temporaryDepartureAirportOptionsDataSource = InterimAirportDataProvider.airports
-
-            // TODO replace with view model eventually - represents repository call
-            val temporaryFlightsDataSource = InterimAirportDataProvider.flights
-
-            // TODO replace with view model eventually - represents current state of departure airport options UI = ui state.
-            //      Transferred.
-            val temporaryFilteredOptions = temporaryDepartureAirportOptionsDataSource.filter { airportDetails ->
-                temporarySearchValueUiState.value.isNotBlank() &&
-                        (airportDetails.name.contains(
-                            other = temporarySearchValueUiState.value,
-                            ignoreCase = true
-                        ) || airportDetails.iataCode.contains(
-                            other = temporarySearchValueUiState.value,
-                            ignoreCase = true
-                        ))
-            }
-
-            // TODO replace with view model eventually - represents business logic of when to show favorite flights
-            val temporaryPossibleFlights: SnapshotStateList<FlightDetails> = rememberSaveable(
-                saver = listSaver(
-                    save = { it.toList() },
-                    restore = { it.toMutableStateList() }
-                )
-            ) {
-                mutableStateListOf() // initial value is EMPTY
-            }
-
-            // TODO replace with view model eventually - represents business logic of when to show favorite flights
-            val temporaryFavoriteFlights: SnapshotStateList<FlightDetails> = rememberSaveable(
-                saver = listSaver(
-                    save = { it.toList() },
-                    restore = { it.toMutableStateList() }
-                )
-            ) {
-                mutableStateListOf() // initial value is EMPTY
-            }
-
-            // TODO replace with view model eventually
-            val noFlights: SnapshotStateList<FlightDetails> = rememberSaveable(
-                saver = listSaver(
-                    save = { it.toList() },
-                    restore = { it.toMutableStateList() }
-                )
-            ) {
-                mutableStateListOf() // initial value is EMPTY
-            }
-
-
-            // TODO replace with view model eventually - represents business logic of when to show favorite flights.
-            //      Transferred.
-            temporaryShowFavoritesUiState.value = validateFavoritesUiState(
-                temporarySearchValueUiState.value.isBlank(),
-                temporaryFavoriteFlights.isNotEmpty()
-            )
-
-            // TODO replace with view model eventually
-            // Transferred update of search value only
-            val onSearchValueChange: (String) -> Unit = {
-                Log.i("FilteredSearch", "FlightSearchApp The current search value to remember: $it")
-                temporarySearchValueUiState.value = it
-                if (it.isBlank()) {
-                    temporaryShowPossibleFlightsUiState.value = false
-                }
-
-                temporaryShowFavoritesUiState.value = validateFavoritesUiState(
-                    it.isBlank(),
-                    temporaryFavoriteFlights.isNotEmpty()
-                )
-
-            }
-
-            val onSetDepartureSelection: (AirportDetails) -> Unit = {
-                Log.i(
-                    "FilteredSearch",
-                    "FlightSearchApp In set departure selection, the selected departure to remember: $it"
-                )
-                temporaryDepartureValueUiState.value = it
-
-                // TODO when the airport details domain object is created,
-                //      then set the search value to the airport code (ie. YYC).
-                //      for now, use the departure string.
-                temporarySearchValueUiState.value = temporaryDepartureValueUiState.value.iataCode
-
-                // When the departure is selected, then get the possible flights for it.
-                // Will schedule recomposition - is REMEMBERED and MUTABLE.
-                Log.i(
-                    "FilteredSearch",
-                    "FlightSearchApp in set departure selection, The app will display a list of flights."
-                )
-                temporaryShowPossibleFlightsUiState.value = true
-                // TODO call repo/db to GET flights using selected departure
-                // TODO get fake Flight list
-                temporaryPossibleFlights.clear()
-//                temporaryPossibleFlights.addAll(mutableListOf("flight 9", "flight 8", "flight 7"))
-                temporaryPossibleFlights.addAll(temporaryFlightsDataSource)
-                Log.i(
-                    "FilteredSearch",
-                    "FlightSearchApp in set departure selection, temporary flights list is:"
-                )
-                Log.i("FilteredSearch", temporaryPossibleFlights.toString())
-            }
-
-            // TODO replace with view model eventually
-            val onToggleFavorites: (FlightDetails) -> Unit = { favoriteFlight ->
-                Log.i(
-                    "FilteredSearch",
-                    "The toggle favorite flight for departure ${favoriteFlight.departureIataCode} and arrival ${favoriteFlight.arrivalIataCode}"
-                )
-                if (temporaryFavoriteFlights.contains(favoriteFlight)) {
-                    Log.i("FilteredSearch", "The event toggle favorites removes flight")
-                    if (temporaryFavoriteFlights.size == 1) {
-                        temporaryFavoriteFlights.clear()
-                    } else {
-                        val temp = temporaryFavoriteFlights.filter {
-                            it != favoriteFlight
-                        }
-                        temporaryFavoriteFlights.clear()
-                        temporaryFavoriteFlights.addAll(temp)
-
+                    val job = coroutineScope.launch {
+                        viewModel.remove(favoriteFlight)
                     }
-                } else { // does not contain flight
-                    Log.i("FilteredSearch", "The event toggle favorites adds flight")
-                    temporaryFavoriteFlights.add(favoriteFlight)
+                    coroutineScope.launch {
+                        job.join()
+                        viewModel.updateFavoritesList()
+                    }
+                } else {
+                    Log.i(
+                        "uistate",
+                        "FlightSearchAppModel click event onToggleFavoritesByViewModel add this flight"
+                    )
+                    coroutineScope.launch {
+                        viewModel.add(favoriteFlight)
+                    }
                 }
             }
 
-            // TODO replace with view model eventually - represents current state of flights (possible or favorites) UI = ui state
-            val displayFlights =
-                if (temporaryShowFavoritesUiState.value) {
-                    Log.i(
-                        "FilteredSearch",
-                        "FlightSearchApp in set display flights, assign favorite flights"
-                    )
-                    temporaryFavoriteFlights
-                } else if (temporaryShowPossibleFlightsUiState.value) {
-                    Log.i(
-                        "FilteredSearch",
-                        "FlightSearchApp in set display flights, assign possible flights"
-                    )
-                    temporaryPossibleFlights
-                } else {
-                    Log.i(
-                        "FilteredSearch",
-                        "FlightSearchApp in set display flights, otherwise assign no flights"
-                    )
-                    noFlights
-                }
-
-            val resultsLabel: String =
-                if (temporaryShowFavoritesUiState.value) {
-                    "Favorite routes"
-                } else if (temporaryShowPossibleFlightsUiState.value) {
-                    "Flights from ${temporaryDepartureValueUiState.value.iataCode}"
-                } else {
-                    ""
-                }
-
-            // TODO in the fullness of time, re-factor state values to UI State class
-            // TODO in the fullness of time, re-factor these to the view model
-
-
-            // TODO pass ui state to home screen
-            // TODO pass event actions to home screen
-            // TODO pass temporary flight list; eventually pass list of domain objects
-
-            Log.i("FilteredSearch", "FlightSearchApp Call HomeScreen")
+            Log.i("uistate", "FlightSearchAppModel Call HomeScreen to show ${flightResultsUiState.flightDetailsList} records")
             HomeScreen(
-                airportDropdownExpanded = temporaryAirportDropdownExpandedUiState.value,
-                searchValue = temporarySearchValueUiState.value,
-                searchOptions = temporaryFilteredOptions,
-                resultsLabel = resultsLabel,
-                flights = displayFlights, // the display flights - might be possible or favorite list
-                toggleAirportDropdown = toggleAirportDropdown,
-                collapseAirportDropdown = collapseAirportDropdown,
-                onSearchValueChange = onSearchValueChange,
-                onSetDepartureSelection = onSetDepartureSelection,
-                onToggleFavorites = onToggleFavorites,
+                airportDropdownExpanded = flightSearchUiState.airportDropdownExpanded,
+                searchValue = flightSearchUiState.searchValue,
+                searchOptions = airportResultsUiState.airportDetailsList,
+                resultsLabel = viewModel.getLabel(),
+                flights = flightResultsUiState.flightDetailsList, // the display flights - might be possible or favorite list
+                toggleAirportDropdown = toggleAirportDropdownByViewModel,
+                collapseAirportDropdown = collapseAirportDropdownByViewModel,
+                onSearchValueChange = onSearchValueChangedByViewModel,
+                onSetDepartureSelection = onSetDepartureSelectionByViewModel,
+                onToggleFavorites = onToggleFavoritesByViewModel,
                 contentPadding = it
             )
 
@@ -291,7 +156,10 @@ fun FlightSearchApp(
 }
 
 @Composable
-fun FlightSearchTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Modifier = Modifier) {
+fun FlightSearchModelTopAppBar(
+    scrollBehavior: TopAppBarScrollBehavior,
+    modifier: Modifier = Modifier
+) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
@@ -310,15 +178,8 @@ fun FlightSearchTopAppBar(scrollBehavior: TopAppBarScrollBehavior, modifier: Mod
 
 @Preview(showBackground = true)
 @Composable
-fun FlightSearchAppPreview() {
+fun FlightSearchAppModelPreview() {
     FlightSearchTheme {
-        FlightSearchApp()
+        OldFlightSearchApp()
     }
-}
-
-// The business rule for favorites; here it is.
-// When the user clears the search value, and there exists favorite flights,
-// then show the favorite flights.
-private fun validateFavoritesUiState(searchValueIsBlank: Boolean, flightsExist: Boolean): Boolean {
-    return searchValueIsBlank && flightsExist
 }

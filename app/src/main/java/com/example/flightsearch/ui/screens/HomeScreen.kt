@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.data.InterimAirportDataProvider
+import com.example.flightsearch.data.PreviewAirportDataProvider
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.ui.components.AutoCompleteSearchTextField
@@ -31,7 +32,7 @@ fun HomeScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
 
-    Log.i("FilteredSearch", "HomeScreen beginning of function")
+    Log.i("uistate", "HomeScreen beginning of function")
 
     Column(
         modifier.padding(top = contentPadding.calculateTopPadding())
@@ -40,7 +41,7 @@ fun HomeScreen(
         // TODO get list of options from ui state
         // TODO pass ui state to home screen
 
-        Log.i("FilteredSearch", "Call AutoCompleteSearchTextField")
+        Log.i("uistate", "Call AutoCompleteSearchTextField")
         AutoCompleteSearchTextField(
             airportDropdownExpanded,
             searchValue,
@@ -52,12 +53,12 @@ fun HomeScreen(
             modifier.padding(16.dp)
         )
 
-        Log.i("FilteredSearch", "check if flights not empty")
+        Log.i("uistate", "check if flights not empty")
         if (flights.isNotEmpty()) {
-            Log.i("FilteredSearch", "found flight results to display")
+            Log.i("uistate", "found flight results to display")
             FlightResults(resultsLabel, flights, onToggleFavorites, contentPadding = contentPadding)
         } else {
-            Log.i("FilteredSearch", "found no flight results to display")
+            Log.i("uistate", "found no flight results to display")
         }
 
     }
@@ -71,8 +72,8 @@ fun HomeScreenPreview() {
         HomeScreen(
             airportDropdownExpanded = false,
             searchValue = "YYC",
-            searchOptions = InterimAirportDataProvider.airports,
-            flights = InterimAirportDataProvider.flights,
+            searchOptions = PreviewAirportDataProvider.airports,
+            flights = PreviewAirportDataProvider.flights,
             resultsLabel = "Flights from YYC",
             toggleAirportDropdown = {},
             collapseAirportDropdown = {},

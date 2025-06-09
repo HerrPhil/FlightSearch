@@ -1,5 +1,6 @@
 package com.example.flightsearch.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +18,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,10 +33,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
-import com.example.flightsearch.data.InterimAirportDataProvider
+import com.example.flightsearch.data.PreviewAirportDataProvider
 import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 import com.example.flightsearch.utils.getFormattedAirport
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 
 // TODO re-factor flights to be the FlightDetail domain object
 @Composable
@@ -90,17 +101,34 @@ private fun FlightList(
     }
 }
 
+@OptIn(FlowPreview::class)
 @Composable
 private fun FlightListItem(
     flight: FlightDetails,
     onItemClick: (FlightDetails) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
+    var isClickedInUI by remember { mutableStateOf(flight.favorite) }
+
+    // The next two variables and the LaunchedEffect further down
+    // prevent the user from multiple clicks to stop duplicate entries in the favorites list.
+    val debounceClickState = remember {    MutableSharedFlow<Unit>(
+        replay = 0,
+        extraBufferCapacity = 1
+    )}
+    val debounceCoroutineScope = rememberCoroutineScope()
+
     Card(
         elevation = CardDefaults.cardElevation(),
-        modifier = modifier,
+        modifier = modifier.clickable(
+            onClick = {
+                debounceCoroutineScope.launch {
+                    debounceClickState.emit(value = Unit)
+                }
+            }
+        ),
         shape = RoundedCornerShape(dimensionResource(R.dimen.card_corner_radius)),
-        onClick = { onItemClick(flight) }
     ) {
 
 
@@ -113,7 +141,6 @@ private fun FlightListItem(
 
             Column(
                 modifier = Modifier
-//                    .fillMaxWidth()
                     .padding( // intra-item padding
                         vertical = dimensionResource(R.dimen.padding_small),
                         horizontal = dimensionResource(R.dimen.padding_medium)
@@ -140,7 +167,7 @@ private fun FlightListItem(
             Spacer(modifier = Modifier.weight(1f))
 
             Icon(
-                painter = if (flight.favorite) {
+                painter = if (isClickedInUI) {
                     painterResource(R.drawable.favorite_flight)
                 } else {
                     painterResource(R.drawable.default_flight)
@@ -151,6 +178,19 @@ private fun FlightListItem(
             )
         }
     }
+
+    LaunchedEffect(Unit) {
+        debounceClickState
+            .debounce(500)
+            .collect {
+                isClickedInUI = !isClickedInUI
+                onItemClick(flight)
+            }
+    }
+
+
+
+
 }
 
 @Preview(showBackground = true)
@@ -161,7 +201,7 @@ fun FlightResultsPreview() {
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightResults(
             resultsLabel = "Flights from YYC",
-            flights = InterimAirportDataProvider.flights,
+            flights = PreviewAirportDataProvider.flights,
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)
         )
@@ -175,7 +215,7 @@ fun FlightListPreview() {
         // The preview content padding values are the
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightList(
-            flights = InterimAirportDataProvider.flights,
+            flights = PreviewAirportDataProvider.flights,
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)
         )
@@ -186,6 +226,6 @@ fun FlightListPreview() {
 @Composable
 fun FlightListItemPreview() {
     FlightSearchTheme {
-        FlightListItem(flight = InterimAirportDataProvider.flights[0], {}, modifier = Modifier)
+        FlightListItem(flight = PreviewAirportDataProvider.flights[0], {}, modifier = Modifier)
     }
 }
