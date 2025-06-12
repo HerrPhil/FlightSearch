@@ -31,15 +31,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
 import com.example.flightsearch.domain.AirportDetails
+import com.example.flightsearch.ui.screens.AirportResultsUiState
+import com.example.flightsearch.ui.screens.FlightSearchUiState
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 import com.example.flightsearch.utils.getFormattedAirport
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoCompleteSearchTextField(
-    airportDropdownExpanded: Boolean,
-    value: String,
-    options: List<AirportDetails>,
+    flightSearchUiState: FlightSearchUiState,
+    airportResultsUiState: AirportResultsUiState,
     toggleAirportDropdown: (Boolean) -> Unit,
     collapseAirportDropdown: () -> Unit,
     onValueChange: (String) -> Unit,
@@ -50,12 +51,12 @@ fun AutoCompleteSearchTextField(
     Log.i("FilteredSearch", "In AutoCompleteSearchTextField")
 
     val textFieldValue = TextFieldValue(
-        text = value,
-        selection = TextRange(value.length)
+        text = flightSearchUiState.searchValue,
+        selection = TextRange(flightSearchUiState.searchValue.length)
     )
 
     ExposedDropdownMenuBox(
-        expanded = airportDropdownExpanded,
+        expanded = flightSearchUiState.airportDropdownExpanded,
         onExpandedChange = toggleAirportDropdown,
         modifier = modifier
     ) {
@@ -73,7 +74,7 @@ fun AutoCompleteSearchTextField(
             },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = airportDropdownExpanded
+                    expanded = flightSearchUiState.airportDropdownExpanded
                 )
             },
             colors = ExposedDropdownMenuDefaults.textFieldColors().copy(
@@ -88,8 +89,9 @@ fun AutoCompleteSearchTextField(
                 .background(MaterialTheme.colorScheme.inverseOnSurface)
                 .menuAnchor(type = MenuAnchorType.SecondaryEditable, enabled = true)
         )
+        val options = airportResultsUiState.airportDetailsList
         ExposedDropdownMenu(
-            expanded = airportDropdownExpanded,
+            expanded = flightSearchUiState.airportDropdownExpanded,
             onDismissRequest = collapseAirportDropdown
         ) {
             options.forEach { selectionOption ->
@@ -120,32 +122,9 @@ fun AutoCompleteSearchTextField(
 @Composable
 fun AutoCompleteSearchTextFieldPreview() {
     FlightSearchTheme {
-
-        val previewSearchOptions = listOf(
-            AirportDetails(
-                id = 1,
-                iataCode = "YYC",
-                name = "Calgary International Airport",
-                passengers = 100
-            ),
-            AirportDetails(
-                id = 2,
-                iataCode = "YEG",
-                name = "Edmonton International Airport",
-                passengers = 200
-            ),
-            AirportDetails(
-                id = 1,
-                iataCode = "YWG",
-                name = "Winnipeg International Airport",
-                passengers = 300
-            ),
-        )
-
         AutoCompleteSearchTextField(
-            airportDropdownExpanded = false,
-            value = "test",
-            options = previewSearchOptions,
+            FlightSearchUiState(),
+            AirportResultsUiState(),
             toggleAirportDropdown = {},
             collapseAirportDropdown = {},
             onValueChange = {},

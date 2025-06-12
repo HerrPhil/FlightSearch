@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.example.flightsearch.R
 import com.example.flightsearch.data.PreviewAirportDataProvider
 import com.example.flightsearch.domain.FlightDetails
+import com.example.flightsearch.ui.screens.FlightResultsUiState
 import com.example.flightsearch.ui.theme.FlightSearchTheme
 import com.example.flightsearch.utils.getFormattedAirport
 import kotlinx.coroutines.FlowPreview
@@ -46,7 +47,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FlightResults(
     resultsLabel: String,
-    flights: List<FlightDetails>,
+    flightResultsUiState: FlightResultsUiState,
     onClick: (FlightDetails) -> Unit, // This will be the item click to add/remove flight to/from favorites
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
@@ -61,7 +62,7 @@ fun FlightResults(
             modifier = modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
         )
         FlightList(
-            flights = flights,
+            flightResultsUiState,
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
@@ -75,7 +76,7 @@ fun FlightResults(
 // TODO re-factor flights to be the FlightDetail domain object
 @Composable
 private fun FlightList(
-    flights: List<FlightDetails>,
+    flightResultsUiState: FlightResultsUiState,
     onClick: (FlightDetails) -> Unit, // This will be the item click to add/remove flight to/from favorites
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp) // inter-composable padding
@@ -84,15 +85,16 @@ private fun FlightList(
     // can be too much for LazyColumn. For example, the LazyColumn had too much vertical space
     // between its top the the Text composable above it. In this case, simply customize the
     // content padding with PaddingValues that make sense for this UX design.
+    val flightDetailsList = flightResultsUiState.flightDetailsList
     LazyColumn(
         contentPadding = contentPadding,
 //        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
         modifier = modifier
     ) {
-        items(flights, key = { flight -> flight.flightID }) { flight ->
+        items(flightDetailsList, key = { flightDetails -> flightDetails.flightID }) { flightDetails ->
             FlightListItem(
-                flight = flight,
+                flightDetails = flightDetails,
                 onItemClick = onClick
             )
         }
@@ -102,12 +104,12 @@ private fun FlightList(
 @OptIn(FlowPreview::class)
 @Composable
 private fun FlightListItem(
-    flight: FlightDetails,
+    flightDetails: FlightDetails,
     onItemClick: (FlightDetails) -> Unit,
     modifier: Modifier = Modifier
 ) {
 
-    var isClickedInUI by remember { mutableStateOf(flight.favorite) }
+    var isClickedInUI by remember { mutableStateOf(flightDetails.favorite) }
 
     // The next two variables and the LaunchedEffect further down
     // prevent the user from multiple clicks to stop duplicate entries in the favorites list.
@@ -149,7 +151,7 @@ private fun FlightListItem(
                     style = MaterialTheme.typography.labelMedium
                 )
                 Text(
-                    getFormattedAirport(flight.departureIataCode, flight.departureAirportName),
+                    getFormattedAirport(flightDetails.departureIataCode, flightDetails.departureAirportName),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
@@ -157,7 +159,7 @@ private fun FlightListItem(
                     style = MaterialTheme.typography.labelMedium
                 )
                 Text(
-                    getFormattedAirport(flight.arrivalIataCode, flight.arrivalAirportName),
+                    getFormattedAirport(flightDetails.arrivalIataCode, flightDetails.arrivalAirportName),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -182,7 +184,7 @@ private fun FlightListItem(
             .debounce(500)
             .collect {
                 isClickedInUI = !isClickedInUI
-                onItemClick(flight)
+                onItemClick(flightDetails)
             }
     }
 }
@@ -195,7 +197,7 @@ fun FlightResultsPreview() {
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightResults(
             resultsLabel = "Flights from YYC",
-            flights = PreviewAirportDataProvider.flights,
+            FlightResultsUiState(),
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)
         )
@@ -209,7 +211,7 @@ fun FlightListPreview() {
         // The preview content padding values are the
         // guesstimate of what Scaffold will calculate in FlightSearchApp
         FlightList(
-            flights = PreviewAirportDataProvider.flights,
+            FlightResultsUiState(),
             onClick = {},
             contentPadding = PaddingValues(start = 8.dp, end = 8.dp)
         )
@@ -220,6 +222,6 @@ fun FlightListPreview() {
 @Composable
 fun FlightListItemPreview() {
     FlightSearchTheme {
-        FlightListItem(flight = PreviewAirportDataProvider.flights[0], {}, modifier = Modifier)
+        FlightListItem(flightDetails = PreviewAirportDataProvider.flightDetails[0], {}, modifier = Modifier)
     }
 }

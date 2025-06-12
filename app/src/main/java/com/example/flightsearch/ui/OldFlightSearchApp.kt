@@ -3,6 +3,8 @@
 package com.example.flightsearch.ui
 
 import android.util.Log
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -230,19 +232,23 @@ fun OldFlightSearchApp(
                 }
 
             Log.i("FilteredSearch", "FlightSearchApp Call HomeScreen")
-            HomeScreen(
-                airportDropdownExpanded = temporaryAirportDropdownExpandedUiState.value,
-                searchValue = temporarySearchValueUiState.value,
-                searchOptions = temporaryFilteredOptions,
-                resultsLabel = resultsLabel,
-                flights = displayFlights, // the display flights - might be possible or favorite list
-                toggleAirportDropdown = toggleAirportDropdown,
-                collapseAirportDropdown = collapseAirportDropdown,
-                onSearchValueChange = onSearchValueChange,
-                onSetDepartureSelection = onSetDepartureSelection,
-                onToggleFavorites = onToggleFavorites,
-                contentPadding = it
-            )
+            Box {
+                Text(text = "old code not intended to keep up with re-factoring - comment out HomeScreen()")
+                val temp: PaddingValues = it // Compose throws an error if contentPadding value is not used.
+            }
+//            HomeScreen(
+//                airportDropdownExpanded = temporaryAirportDropdownExpandedUiState.value,
+//                searchValue = temporarySearchValueUiState.value,
+//                searchOptions = temporaryFilteredOptions,
+//                resultsLabel = resultsLabel,
+//                flights = displayFlights, // the display flights - might be possible or favorite list
+//                toggleAirportDropdown = toggleAirportDropdown,
+//                collapseAirportDropdown = collapseAirportDropdown,
+//                onSearchValueChange = onSearchValueChange,
+//                onSetDepartureSelection = onSetDepartureSelection,
+//                onToggleFavorites = onToggleFavorites,
+//                contentPadding = it
+//            )
 
         }
     }

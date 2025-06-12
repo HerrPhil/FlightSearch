@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.flightsearch.data.InterimAirportDataProvider
 import com.example.flightsearch.data.PreviewAirportDataProvider
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
@@ -18,11 +17,10 @@ import com.example.flightsearch.ui.theme.FlightSearchTheme
 
 @Composable
 fun HomeScreen(
-    airportDropdownExpanded: Boolean,
-    searchValue: String,
-    searchOptions: List<AirportDetails>,
+    flightSearchUiState: FlightSearchUiState,
+    airportResultsUiState: AirportResultsUiState,
     resultsLabel: String,
-    flights: List<FlightDetails>,
+    flightResultsUiState: FlightResultsUiState,
     toggleAirportDropdown: (Boolean) -> Unit,
     collapseAirportDropdown: () -> Unit,
     onSearchValueChange: (String) -> Unit,
@@ -43,9 +41,8 @@ fun HomeScreen(
 
         Log.i("uistate", "Call AutoCompleteSearchTextField")
         AutoCompleteSearchTextField(
-            airportDropdownExpanded,
-            searchValue,
-            searchOptions,
+            flightSearchUiState,
+            airportResultsUiState,
             toggleAirportDropdown,
             collapseAirportDropdown,
             onSearchValueChange,
@@ -54,9 +51,10 @@ fun HomeScreen(
         )
 
         Log.i("uistate", "check if flights not empty")
-        if (flights.isNotEmpty()) {
+        val hasFlights = flightResultsUiState.flightDetailsList.isNotEmpty()
+        if (hasFlights) {
             Log.i("uistate", "found flight results to display")
-            FlightResults(resultsLabel, flights, onToggleFavorites, contentPadding = contentPadding)
+            FlightResults(resultsLabel, flightResultsUiState, onToggleFavorites, contentPadding = contentPadding)
         } else {
             Log.i("uistate", "found no flight results to display")
         }
@@ -70,11 +68,10 @@ fun HomeScreen(
 fun HomeScreenPreview() {
     FlightSearchTheme {
         HomeScreen(
-            airportDropdownExpanded = false,
-            searchValue = "YYC",
-            searchOptions = PreviewAirportDataProvider.airports,
-            flights = PreviewAirportDataProvider.flights,
+            FlightSearchUiState(),
+            AirportResultsUiState(),
             resultsLabel = "Flights from YYC",
+            FlightResultsUiState(),
             toggleAirportDropdown = {},
             collapseAirportDropdown = {},
             onSearchValueChange = {},

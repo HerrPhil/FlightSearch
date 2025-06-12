@@ -247,25 +247,29 @@ object InterimAirportDataProvider {
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YEG",
-                arrivalAirportName = "Edmonton International Airport"
+                arrivalAirportName = "Edmonton International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YVR",
-                arrivalAirportName = "Vancouver International Airport"
+                arrivalAirportName = "Vancouver International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YYZ",
-                arrivalAirportName = "Toronto International Airport"
+                arrivalAirportName = "Toronto International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YWG",
-                arrivalAirportName = "Winnipeg International Airport"
+                arrivalAirportName = "Winnipeg International Airport",
+                isFavorite = false
             ),
 
             // Edmonton departures
@@ -273,25 +277,29 @@ object InterimAirportDataProvider {
                 departureIataCode = "YEG",
                 departureAirportName = "Edmonton International Airport",
                 arrivalIataCode = "YYC",
-                arrivalAirportName = "Calgary International Airport"
+                arrivalAirportName = "Calgary International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YEG",
                 departureAirportName = "Edmonton International Airport",
                 arrivalIataCode = "YVR",
-                arrivalAirportName = "Vancouver International Airport"
+                arrivalAirportName = "Vancouver International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YEG",
                 departureAirportName = "Edmonton International Airport",
                 arrivalIataCode = "YYZ",
-                arrivalAirportName = "Toronto International Airport"
+                arrivalAirportName = "Toronto International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YEG",
                 departureAirportName = "Edmonton International Airport",
                 arrivalIataCode = "YWG",
-                arrivalAirportName = "Winnipeg International Airport"
+                arrivalAirportName = "Winnipeg International Airport",
+                isFavorite = false
             ),
 
             // Vancouver departures
@@ -299,25 +307,29 @@ object InterimAirportDataProvider {
                 departureIataCode = "YVR",
                 departureAirportName = "Vancouver International Airport",
                 arrivalIataCode = "YYC",
-                arrivalAirportName = "Calgary International Airport"
+                arrivalAirportName = "Calgary International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YVR",
                 departureAirportName = "Vancouver International Airport",
                 arrivalIataCode = "YEG",
-                arrivalAirportName = "Edmonton International Airport"
+                arrivalAirportName = "Edmonton International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YVR",
                 departureAirportName = "Vancouver International Airport",
                 arrivalIataCode = "YYZ",
-                arrivalAirportName = "Toronto International Airport"
+                arrivalAirportName = "Toronto International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YVR",
                 departureAirportName = "Vancouver International Airport",
                 arrivalIataCode = "YWG",
-                arrivalAirportName = "Winnipeg International Airport"
+                arrivalAirportName = "Winnipeg International Airport",
+                isFavorite = false
             ),
 
             // Toronto departures
@@ -325,25 +337,29 @@ object InterimAirportDataProvider {
                 departureIataCode = "YYZ",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YYC",
-                arrivalAirportName = "Calgary International Airport"
+                arrivalAirportName = "Calgary International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYZ",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YEG",
-                arrivalAirportName = "Edmonton International Airport"
+                arrivalAirportName = "Edmonton International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYZ",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YVR",
-                arrivalAirportName = "Vancouver International Airport"
+                arrivalAirportName = "Vancouver International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYZ",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YWG",
-                arrivalAirportName = "Winnipeg International Airport"
+                arrivalAirportName = "Winnipeg International Airport",
+                isFavorite = false
             ),
 
             // Winnipeg departures
@@ -351,25 +367,29 @@ object InterimAirportDataProvider {
                 departureIataCode = "YWG",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YYC",
-                arrivalAirportName = "Calgary International Airport"
+                arrivalAirportName = "Calgary International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YWG",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YEG",
-                arrivalAirportName = "Edmonton International Airport"
+                arrivalAirportName = "Edmonton International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YWG",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YVR",
-                arrivalAirportName = "Vancouver International Airport"
+                arrivalAirportName = "Vancouver International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YWG",
                 departureAirportName = "Toronto International Airport",
                 arrivalIataCode = "YYZ",
-                arrivalAirportName = "Toronto International Airport"
+                arrivalAirportName = "Toronto International Airport",
+                isFavorite = false
             )
         )
     }

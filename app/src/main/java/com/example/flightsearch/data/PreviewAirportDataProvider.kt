@@ -2,16 +2,12 @@ package com.example.flightsearch.data
 
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 object PreviewAirportDataProvider {
 
     val airports = getInterimAirportDetails()
 
-    val flights = getInterimFlightDetails()
+    val flightDetails = getInterimFlightDetails()
 
     private fun getInterimAirportDetails(): List<AirportDetails> {
         return listOf(
@@ -54,25 +50,29 @@ object PreviewAirportDataProvider {
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YEG",
-                arrivalAirportName = "Edmonton International Airport"
+                arrivalAirportName = "Edmonton International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YVR",
-                arrivalAirportName = "Vancouver International Airport"
+                arrivalAirportName = "Vancouver International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YYZ",
-                arrivalAirportName = "Toronto International Airport"
+                arrivalAirportName = "Toronto International Airport",
+                isFavorite = false
             ),
             FlightDetails(
                 departureIataCode = "YYC",
                 departureAirportName = "Calgary International Airport",
                 arrivalIataCode = "YWG",
-                arrivalAirportName = "Winnipeg International Airport"
+                arrivalAirportName = "Winnipeg International Airport",
+                isFavorite = false
             ),
         )
     }

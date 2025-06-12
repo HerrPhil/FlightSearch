@@ -142,14 +142,11 @@ fun FlightSearchApp(
                 }
             }
 
-            Log.i("uistate", "FlightSearchAppModel Call HomeScreen to show ${flightResultsUiState.flightDetailsList} records")
             HomeScreen(
-                airportDropdownExpanded = flightSearchUiState.airportDropdownExpanded,
-                searchValue = flightSearchUiState.searchValue,
-                searchOptions = airportResultsUiStatezzz.airportDetailsList,
-//                searchOptions = airportResultsUiState.airportDetailsList,
-                resultsLabel = viewModel.getLabel(),
-                flights = flightResultsUiState.flightDetailsList, // the display flights - might be possible or favorite list
+                flightSearchUiState, //  the user search value
+                airportResultsUiStatezzz, // the airport results based on search value
+                resultsLabel = viewModel.getLabel(), // label based on flight results
+                flightResultsUiState, // the display flights - might be possible or favorite list
                 toggleAirportDropdown = toggleAirportDropdownByViewModel,
                 collapseAirportDropdown = collapseAirportDropdownByViewModel,
                 onSearchValueChange = onSearchValueChangedByViewModel,
@@ -157,10 +154,8 @@ fun FlightSearchApp(
                 onToggleFavorites = onToggleFavoritesByViewModel,
                 contentPadding = it
             )
-
         }
     }
-
 }
 
 @Composable

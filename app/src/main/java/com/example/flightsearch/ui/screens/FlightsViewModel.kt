@@ -176,7 +176,8 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
         }
 
     private fun getDisplayFlightsStateFlow(): StateFlow<FlightResultsUiState> =
-        getDisplayFlights().map { FlightResultsUiState(it) }
+        getDisplayFlights()
+            .map { FlightResultsUiState(it) }
             .filter {
                 Log.i("uistate", "created newer FlightResultsUiState of list of flights")
                 true
@@ -190,7 +191,8 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
     private fun getDisplayFlights(): Flow<List<FlightDetails>> = with(_flightSearchUiState.value) {
         when (flightResultsType) {
             FlightResultsType.FAVORITE_FLIGHTS -> getFavoriteFlights()
-            FlightResultsType.POSSIBLE_FLIGHTS -> getPossibleFlightsByDepartureAirport()
+            FlightResultsType.POSSIBLE_FLIGHTS -> getPossibleFlightsByDepartureAirportzzz()
+//            FlightResultsType.POSSIBLE_FLIGHTS -> getPossibleFlightsByDepartureAirport()
             FlightResultsType.NONE -> flow { emptyList<FlightDetails>() }
         }
     }
@@ -201,6 +203,16 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
     private fun getPossibleFlightsByDepartureAirport(): Flow<List<FlightDetails>> =
         with(_flightSearchUiState.value.departureAirportDetails) {
             InterimAirportDataProvider.getPossibleFlightsBy(iataCode)
+        }
+
+    private fun getPossibleFlightsByDepartureAirportzzz(): Flow<List<FlightDetails>> =
+        with(_flightSearchUiState.value.departureAirportDetails) {
+            flightSearchRepository.getPossibleFlights(iataCode)
+                .mapNotNull {
+                    it.map {flight ->
+                        flight.toFlightDetails()
+                    }
+                }
         }
 
     private fun getFlightResultsType(searchValue: String): FlightResultsType =
@@ -258,7 +270,8 @@ fun Flight.toFlightDetails(): FlightDetails = FlightDetails(
     departureIataCode = departureIataCode,
     departureAirportName = departureAirportName,
     arrivalIataCode = arrivalIataCode,
-    arrivalAirportName = arrivalAirportName
+    arrivalAirportName = arrivalAirportName,
+    isFavorite = isFavorite
 )
 
 fun Airport.toAirportDetails(): AirportDetails = AirportDetails(
