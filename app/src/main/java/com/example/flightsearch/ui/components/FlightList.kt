@@ -91,12 +91,10 @@ private fun FlightList(
         modifier = modifier
     ) {
         items(flights, key = { flight -> flight.flightID }) { flight ->
-
             FlightListItem(
                 flight = flight,
                 onItemClick = onClick
             )
-
         }
     }
 }
@@ -113,10 +111,12 @@ private fun FlightListItem(
 
     // The next two variables and the LaunchedEffect further down
     // prevent the user from multiple clicks to stop duplicate entries in the favorites list.
-    val debounceClickState = remember {    MutableSharedFlow<Unit>(
-        replay = 0,
-        extraBufferCapacity = 1
-    )}
+    val debounceClickState = remember {
+        MutableSharedFlow<Unit>(
+            replay = 0,
+            extraBufferCapacity = 1
+        )
+    }
     val debounceCoroutineScope = rememberCoroutineScope()
 
     Card(
@@ -131,13 +131,11 @@ private fun FlightListItem(
         shape = RoundedCornerShape(dimensionResource(R.dimen.card_corner_radius)),
     ) {
 
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-
 
             Column(
                 modifier = Modifier
@@ -187,10 +185,6 @@ private fun FlightListItem(
                 onItemClick(flight)
             }
     }
-
-
-
-
 }
 
 @Preview(showBackground = true)

@@ -4,8 +4,14 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.flightsearch.FlightSearchApplication
+import com.example.flightsearch.data.Airport
+import com.example.flightsearch.data.Favorite
+import com.example.flightsearch.data.Flight
+import com.example.flightsearch.data.FlightSearchRepository
 import com.example.flightsearch.data.InterimAirportDataProvider
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
@@ -14,13 +20,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class FlightsViewModel : ViewModel() {
+class FlightsViewModel(private val flightSearchRepository: FlightSearchRepository) : ViewModel() {
 
     private val _flightSearchUiState = MutableStateFlow(
         FlightSearchUiState()
@@ -32,6 +41,8 @@ class FlightsViewModel : ViewModel() {
     }
 
     var displayAirportDetailsUiState = getAirportDetailsStateFlow()
+
+    var displayAirportDetailsUiStatezzz = getAirportDetailsStateFlowzzz()
 
     var displayFlightDetailsUiState = getDisplayFlightsStateFlow()
 
@@ -63,6 +74,7 @@ class FlightsViewModel : ViewModel() {
             )
         }
         displayAirportDetailsUiState = getAirportDetailsStateFlow()
+        displayAirportDetailsUiStatezzz = getAirportDetailsStateFlowzzz()
         displayFlightDetailsUiState = getDisplayFlightsStateFlow()
     }
 
@@ -134,9 +146,33 @@ class FlightsViewModel : ViewModel() {
                 initialValue = AirportResultsUiState()
             )
 
+    private fun getAirportDetailsStateFlowzzz(): StateFlow<AirportResultsUiState> =
+        getAirportDetailzzz()
+            .mapNotNull {
+                it.map {airport ->
+                    airport.toAirportDetails()
+                }
+            }
+            .map { AirportResultsUiState(it) }
+            .filter {
+                Log.i("uistate", "created AirportResultsUiState of list of airports")
+                true
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+                initialValue = AirportResultsUiState()
+            )
+
     private fun getAirportDetails(): Flow<List<AirportDetails>> =
         with(_flightSearchUiState.value) {
             return InterimAirportDataProvider.getAirportsBy(searchValue)
+        }
+
+    private fun getAirportDetailzzz(): Flow<List<Airport>> =
+        with(_flightSearchUiState.value) {
+            if (searchValue.isBlank()) return emptyFlow()
+            return flightSearchRepository.getAirportsBy("%$searchValue%")
         }
 
     private fun getDisplayFlightsStateFlow(): StateFlow<FlightResultsUiState> =
@@ -187,12 +223,15 @@ class FlightsViewModel : ViewModel() {
         val factory: ViewModelProvider.Factory = viewModelFactory {
             Log.i("uistate", "start view model factory - call initializer")
             initializer {
-                FlightsViewModel()
+                FlightsViewModel(flightSearchApplication().container.flightSearchRepository)
             }
         }
     }
 
 }
+
+fun CreationExtras.flightSearchApplication(): FlightSearchApplication =
+    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as FlightSearchApplication)
 
 data class FlightSearchUiState(
     val airportDropdownExpanded: Boolean = false,
@@ -208,3 +247,23 @@ data class FlightSearchUiState(
 data class AirportResultsUiState(val airportDetailsList: List<AirportDetails> = listOf())
 
 data class FlightResultsUiState(val flightDetailsList: List<FlightDetails> = listOf())
+
+// for add favorite events
+fun FlightDetails.toFavorite(): Favorite = Favorite(
+    departureCode = departureIataCode,
+    destinationCode = arrivalIataCode
+)
+
+fun Flight.toFlightDetails(): FlightDetails = FlightDetails(
+    departureIataCode = departureIataCode,
+    departureAirportName = departureAirportName,
+    arrivalIataCode = arrivalIataCode,
+    arrivalAirportName = arrivalAirportName
+)
+
+fun Airport.toAirportDetails(): AirportDetails = AirportDetails(
+    id = id,
+    iataCode = iataCode,
+    name = name,
+    passengers = passengers
+)

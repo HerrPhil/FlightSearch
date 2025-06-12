@@ -52,6 +52,13 @@ fun FlightSearchApp(
         "FlightSearchAppModel size of get filtered airport options = ${airportResultsUiState.airportDetailsList.size}"
     )
 
+    Log.i("uistate", "expect new airport details from db because of user search value")
+    val airportResultsUiStatezzz by viewModel.displayAirportDetailsUiStatezzz.collectAsState()
+    Log.i(
+        "uistate",
+        "FlightSearchAppModel size of get db filtered airport options = ${airportResultsUiStatezzz.airportDetailsList.size}"
+    )
+
     Log.i("uistate", "expect new airport details because of user airport details selection")
     val flightResultsUiState by viewModel.displayFlightDetailsUiState.collectAsState()
     Log.i(
@@ -139,7 +146,8 @@ fun FlightSearchApp(
             HomeScreen(
                 airportDropdownExpanded = flightSearchUiState.airportDropdownExpanded,
                 searchValue = flightSearchUiState.searchValue,
-                searchOptions = airportResultsUiState.airportDetailsList,
+                searchOptions = airportResultsUiStatezzz.airportDetailsList,
+//                searchOptions = airportResultsUiState.airportDetailsList,
                 resultsLabel = viewModel.getLabel(),
                 flights = flightResultsUiState.flightDetailsList, // the display flights - might be possible or favorite list
                 toggleAirportDropdown = toggleAirportDropdownByViewModel,
