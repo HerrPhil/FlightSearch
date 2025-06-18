@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 // Notes from the course:
 // The database operations can take a long time to execute, so they need to run on a separate thread.
@@ -11,6 +12,9 @@ import androidx.room.Query
 
 @Dao
 interface FavoriteDao {
+
+    @Query("SELECT COUNT(*) FROM favorite")
+    fun countFavoritesFlow(): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM favorite")
     fun countFavorites(): Int

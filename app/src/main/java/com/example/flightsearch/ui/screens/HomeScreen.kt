@@ -25,7 +25,7 @@ fun HomeScreen(
     collapseAirportDropdown: () -> Unit,
     onSearchValueChange: (String) -> Unit,
     onSetDepartureSelection: (AirportDetails) -> Unit,
-    onToggleFavorites: (FlightDetails) -> Unit,
+    onToggleSelectedFlightDetails: (FlightDetails) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
@@ -54,7 +54,7 @@ fun HomeScreen(
         val hasFlights = flightResultsUiState.flightDetailsList.isNotEmpty()
         if (hasFlights) {
             Log.i("uistate", "found flight results to display")
-            FlightResults(resultsLabel, flightResultsUiState, onToggleFavorites, contentPadding = contentPadding)
+            FlightResults(resultsLabel, flightResultsUiState, onToggleSelectedFlightDetails, contentPadding = contentPadding)
         } else {
             Log.i("uistate", "found no flight results to display")
         }
@@ -76,7 +76,7 @@ fun HomeScreenPreview() {
             collapseAirportDropdown = {},
             onSearchValueChange = {},
             onSetDepartureSelection = {},
-            onToggleFavorites = {}
+            onToggleSelectedFlightDetails = {}
         )
     }
 }

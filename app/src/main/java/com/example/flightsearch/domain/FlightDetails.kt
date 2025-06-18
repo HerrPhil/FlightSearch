@@ -10,6 +10,4 @@ data class FlightDetails(
     val arrivalIataCode: String,
     val arrivalAirportName: String,
     val isFavorite: Boolean
-    ) {
-    var favorite: Boolean = false
-}
+    )

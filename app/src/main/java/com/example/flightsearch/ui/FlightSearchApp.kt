@@ -27,7 +27,9 @@ import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.ui.screens.FlightsViewModel
 import com.example.flightsearch.ui.screens.HomeScreen
 import com.example.flightsearch.ui.theme.FlightSearchTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun FlightSearchApp(
@@ -45,18 +47,13 @@ fun FlightSearchApp(
         "FlightSearchAppModel the ui state search value = <<${flightSearchUiState.searchValue}>>"
     )
 
-    Log.i("uistate", "expect new airport details because of user search value")
+    val resultsLabelUiState by viewModel.resultsLabelUiState.collectAsState()
+
+    Log.i("uistate", "expect new airport details from db because of user search value")
     val airportResultsUiState by viewModel.displayAirportDetailsUiState.collectAsState()
     Log.i(
         "uistate",
-        "FlightSearchAppModel size of get filtered airport options = ${airportResultsUiState.airportDetailsList.size}"
-    )
-
-    Log.i("uistate", "expect new airport details from db because of user search value")
-    val airportResultsUiStatezzz by viewModel.displayAirportDetailsUiStatezzz.collectAsState()
-    Log.i(
-        "uistate",
-        "FlightSearchAppModel size of get db filtered airport options = ${airportResultsUiStatezzz.airportDetailsList.size}"
+        "FlightSearchAppModel size of get db filtered airport options = ${airportResultsUiState.airportDetailsList.size}"
     )
 
     Log.i("uistate", "expect new airport details because of user airport details selection")
@@ -98,12 +95,12 @@ fun FlightSearchApp(
                 viewModel.toggleAirportDropdown(false) // false = collapse dropdown
             }
 
-            val onSearchValueChangedByViewModel: (String) -> Unit = {
+            val onSearchValueChanged: (String) -> Unit = {
                 Log.i(
                     "uistate",
-                    "FlightSearchAppModel click event onSearchValueChangedByViewModel($it)"
+                    "FlightSearchAppModel click event onSearchValueChanged($it)"
                 )
-                viewModel.updateSearchValue(it)
+                viewModel.onSearchValueChanged(it)
             }
 
             val onSetDepartureSelectionByViewModel: (AirportDetails) -> Unit = {
@@ -114,44 +111,38 @@ fun FlightSearchApp(
                 viewModel.updateDepartureDetails(it)
             }
 
-            val onToggleFavoritesByViewModel: (FlightDetails) -> Unit = { favoriteFlight ->
+            val onToggleSelectedFlightDetails: (FlightDetails) -> Unit = { selectedFlight ->
                 Log.i(
                     "uistate",
-                    "FlightSearchAppModel click event onToggleFavoritesByViewModel(${favoriteFlight.departureIataCode}, ${favoriteFlight.arrivalIataCode})"
+                    "FlightSearchAppModel click event onToggleFavoritesByViewModel(${selectedFlight.departureIataCode}, ${selectedFlight.arrivalIataCode})"
                 )
-                if (viewModel.exists(favoriteFlight)) {
-                    Log.i(
-                        "uistate",
-                        "FlightSearchAppModel click event onToggleFavoritesByViewModel remove this flight"
-                    )
-                    val job = coroutineScope.launch {
-                        viewModel.remove(favoriteFlight)
+                coroutineScope.launch {
+                    withContext(Dispatchers.IO) {
+                        viewModel.toggleFavoriteStatusOfSelectedFlight(
+                            selectedFlight.copy(
+                                isFavorite = selectedFlight.isFavorite.not()
+                            )
+                        )
                     }
-                    coroutineScope.launch {
-                        job.join()
-                        viewModel.updateFavoritesList()
+                }.invokeOnCompletion {
+                    Log.i("uistate", "coroutine launch says toggle job is complete!")
+                    if (it != null) {
+                        Log.i("uistate", "Oh no! There is problem ${it.message}.")
                     }
-                } else {
-                    Log.i(
-                        "uistate",
-                        "FlightSearchAppModel click event onToggleFavoritesByViewModel add this flight"
-                    )
-                    coroutineScope.launch {
-                        viewModel.add(favoriteFlight)
-                    }
+                    viewModel.checkWhenToSwitchFromFavoriteToPossibleFlightsFlow()
                 }
             }
 
             HomeScreen(
-                flightSearchUiState, //  the user search value
-                airportResultsUiStatezzz, // the airport results based on search value
-                resultsLabel = viewModel.getLabel(), // label based on flight results
-                flightResultsUiState, // the display flights - might be possible or favorite list
+                flightSearchUiState = flightSearchUiState, //  the user search value
+                airportResultsUiState = airportResultsUiState, // the airport results based on search value
+                resultsLabel = resultsLabelUiState, // label based on flight results
+                flightResultsUiState = flightResultsUiState, // the display flights - might be possible or favorite list
                 toggleAirportDropdown = toggleAirportDropdownByViewModel,
                 collapseAirportDropdown = collapseAirportDropdownByViewModel,
-                onSearchValueChange = onSearchValueChangedByViewModel,
+                onSearchValueChange = onSearchValueChanged,
                 onSetDepartureSelection = onSetDepartureSelectionByViewModel,
-                onToggleFavorites = onToggleFavoritesByViewModel,
+                onToggleSelectedFlightDetails = onToggleSelectedFlightDetails,
                 contentPadding = it
             )
         }

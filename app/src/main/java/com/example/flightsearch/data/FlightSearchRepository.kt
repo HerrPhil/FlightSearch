@@ -8,6 +8,8 @@ interface FlightSearchRepository {
     fun getAirportsBy(searchValue: String): Flow<List<Airport>>
 
     // functions for the favorite DAO
+    fun countFavoritesFlow(): Flow<Int>
+
     fun countFavorites(): Int
 
     fun hasFavorites(): Boolean

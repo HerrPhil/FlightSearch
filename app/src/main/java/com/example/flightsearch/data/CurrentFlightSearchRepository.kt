@@ -10,6 +10,8 @@ class CurrentFlightSearchRepository(
 
     override fun getAirportsBy(searchValue: String): Flow<List<Airport>> = airportDao.getAirportsBy(searchValue)
 
+    override fun countFavoritesFlow(): Flow<Int> = favoriteDao.countFavoritesFlow()
+
     override fun countFavorites(): Int = favoriteDao.countFavorites()
 
     override fun hasFavorites(): Boolean = favoriteDao.hasFavorites()

@@ -101,7 +101,7 @@ object InterimAirportDataProvider {
         )
         delay(500)
         Log.i("uistate", "**** count before adding favorite flight = ${favorites.size}")
-        flightDetails.favorite = true
+//        flightDetails.favorite = true
         favorites.add(flightDetails)
         Log.i("uistate", "**** count after adding favorite flight = ${favorites.size}")
     }
@@ -113,7 +113,7 @@ object InterimAirportDataProvider {
         )
         delay(500)
         Log.i("uistate", "**** count before removing favorite flight = ${favorites.size}")
-        flightDetails.favorite = false
+//        flightDetails.favorite = false
         favorites.removeIf { it.flightID == flightDetails.flightID }
         Log.i("uistate", "**** count after removing favorite flight = ${favorites.size}")
     }

@@ -109,7 +109,7 @@ private fun FlightListItem(
     modifier: Modifier = Modifier
 ) {
 
-    var isClickedInUI by remember { mutableStateOf(flightDetails.favorite) }
+//    var isClickedInUI by remember { mutableStateOf(flightDetails.favorite) }
 
     // The next two variables and the LaunchedEffect further down
     // prevent the user from multiple clicks to stop duplicate entries in the favorites list.
@@ -167,7 +167,7 @@ private fun FlightListItem(
             Spacer(modifier = Modifier.weight(1f))
 
             Icon(
-                painter = if (isClickedInUI) {
+                painter = if (flightDetails.isFavorite) {
                     painterResource(R.drawable.favorite_flight)
                 } else {
                     painterResource(R.drawable.default_flight)
@@ -183,7 +183,7 @@ private fun FlightListItem(
         debounceClickState
             .debounce(500)
             .collect {
-                isClickedInUI = !isClickedInUI
+//                isClickedInUI = !isClickedInUI
                 onItemClick(flightDetails)
             }
     }
