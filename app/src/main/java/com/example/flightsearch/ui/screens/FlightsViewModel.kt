@@ -12,6 +12,7 @@ import com.example.flightsearch.data.Airport
 import com.example.flightsearch.data.Favorite
 import com.example.flightsearch.data.Flight
 import com.example.flightsearch.data.FlightSearchRepository
+import com.example.flightsearch.data.UserPreferencesRepository
 import com.example.flightsearch.domain.AirportDetails
 import com.example.flightsearch.domain.FlightDetails
 import com.example.flightsearch.domain.FlightResultsType
@@ -31,7 +32,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class FlightsViewModel(private val flightSearchRepository: FlightSearchRepository) : ViewModel() {
+class FlightsViewModel(
+    private val flightSearchRepository: FlightSearchRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
 
     private val _countFavoritesFlow: StateFlow<Int> = flightSearchRepository.countFavoritesFlow()
         .stateIn(
@@ -56,16 +60,17 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
     // when any table in a query has updates.
     // It is the business rules in the view model that are responsible to manage
     // what query points to this StateFlow.
-    var displayFlightDetailsUiState: StateFlow<FlightResultsUiState> = emptyFlow<FlightResultsUiState>()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-            initialValue = FlightResultsUiState(emptyList())
-        )
+    var displayFlightDetailsUiState: StateFlow<FlightResultsUiState> =
+        emptyFlow<FlightResultsUiState>()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
+                initialValue = FlightResultsUiState(emptyList())
+            )
 
     init {
         Log.i("uistate", "initialized FlightViewModel")
-        initFlightResultsType()
+        initializeFlightSearchInformation()
     }
 
     fun toggleAirportDropdown(expanded: Boolean) {
@@ -86,6 +91,11 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
             it.copy(
                 searchValue = modifiedSearchValue
             )
+        }
+
+        // store search value in user preferences
+        viewModelScope.launch {
+            userPreferencesRepository.saveAirportPreference(modifiedSearchValue)
         }
 
         refreshAirportDetails() // dependent on search value state, set above
@@ -211,6 +221,24 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
                 }
                 updateLabelUiState() // dependent on flight results type
                 reloadDisplayFlights() // dependent on flight results type
+            }
+        }
+    }
+
+    private fun initializeFlightSearchInformation() {
+        viewModelScope.launch {
+            // The airport search value is collected from the preferences cold flow
+            // since there are no hot flow re-compositions that need to occur.
+            userPreferencesRepository.currentAirportSearchValue.collect {storedSearchValue ->
+                if (storedSearchValue.isNotBlank()) {
+                    _flightSearchUiState.update {
+                        it.copy(
+                            searchValue = storedSearchValue
+                        )
+                    }
+                    refreshAirportDetails()
+                }
+                initFlightResultsType() // depends on possible stored search value
             }
         }
     }
@@ -358,7 +386,10 @@ class FlightsViewModel(private val flightSearchRepository: FlightSearchRepositor
         val factory: ViewModelProvider.Factory = viewModelFactory {
             Log.i("uistate", "start view model factory - call initializer")
             initializer {
-                FlightsViewModel(flightSearchApplication().container.flightSearchRepository)
+                FlightsViewModel(
+                    flightSearchApplication().container.flightSearchRepository,
+                    flightSearchApplication().container.userPreferencesRepository
+                )
             }
         }
     }
